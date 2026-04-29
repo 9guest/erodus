@@ -1,0 +1,50 @@
+End User License Agreement (EULA)
+
+IMPORTANT — READ CAREFULLY:
+This End User License Agreement ("Agreement") is a legal agreement between you (either an individual or a single entity, "You" or "Licensee") and ycs ("Licensor") for the software product "ElecflowTemplate" including any associated media, printed materials, and online or electronic documentation ("Software").
+
+1. License Grant
+Subject to the terms of this Agreement, Licensor hereby grants You a limited, non-exclusive, non-transferable, revocable license to install and use one copy of the Software on a single device for personal or internal business purposes.
+
+2. License Restrictions
+You shall not:
+  a. distribute, sublicense, rent, lease, lend, or transfer the Software to any third party;
+  b. modify, adapt, translate, or create derivative works based on the Software;
+  c. reverse engineer, decompile, disassemble, or attempt to derive source code from the Software except to the extent applicable law expressly permits such activity;
+  d. remove, alter, or obscure any proprietary notices on the Software.
+
+3. Updates and Support
+Licensor may, at its sole discretion, provide updates, upgrades, patches, or support for the Software. Such updates may be subject to additional terms.
+
+4. Third-Party Components
+The Software may include third-party software components subject to separate license terms. Those components are licensed to You under their respective terms.
+
+5. Ownership
+All right, title, and interest in and to the Software and all copies remain with Licensor and its licensors. No rights are transferred except the limited license expressly granted here.
+
+6. Termination
+This Agreement is effective until terminated. Licensor may terminate this Agreement immediately upon notice if You fail to comply with any term. Upon termination, You must cease all use and destroy all copies of the Software.
+
+7. Disclaimer of Warranties
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE SOFTWARE IS PROVIDED "AS IS", "AS AVAILABLE" AND WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+8. Limitation of Liability
+IN NO EVENT SHALL LICENSOR BE LIABLE FOR ANY INCIDENTAL, INDIRECT, SPECIAL, PUNITIVE OR CONSEQUENTIAL DAMAGES, OR LOSS OF PROFITS, REVENUES, DATA OR USE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. LICENSOR'S AGGREGATE LIABILITY SHALL NOT EXCEED THE AMOUNT PAID BY YOU FOR THE SOFTWARE, IF ANY.
+
+9. Indemnification
+You agree to indemnify and hold Licensor harmless from any claims, liabilities, damages, and expenses arising out of your breach of this Agreement or misuse of the Software.
+
+10. Export Control
+You agree to comply with all applicable export laws and regulations.
+
+11. Governing Law and Dispute Resolution
+This Agreement shall be governed by the laws of your jurisdiction. Any disputes shall be resolved in the courts of your jurisdiction, unless otherwise agreed.
+
+12. Miscellaneous
+If any provision is unenforceable, the remainder will remain in full force. This Agreement constitutes the entire agreement between the parties regarding the Software.
+
+Contact:
+ninguest & 9guest
+https://github.com/9guest/ElecflowTemplate
+
+BY INSTALLING, COPYING, OR OTHERWISE USING THE SOFTWARE, YOU AGREE TO BE BOUND BY THE TERMS OF THIS AGREEMENT.

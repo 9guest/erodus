@@ -1,0 +1,114 @@
+{
+  "name": "erodus",
+  "version": "1.0.0",
+  "description": "EroVoice.Desktop.US is a desktop client for erovoice.us",
+  "author": "yc",
+  "homepage": "https://github.com/9guest/erovoice.desktop.us",
+  "repository": "https://github.com/9guest/erovoice.desktop.us",
+  "license": "MIT",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --publish=never",
+    "pack": "electron-builder --dir",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "keywords": [
+    "Electron",
+    "Javascript",
+    "18+",
+    "erovoice.us",
+    "nsfw"
+  ],
+  "build": {
+    "appId": "com.ycs.erodus",
+    "productName": "EroDus",
+    "artifactName": "${productName}-${version}-${os}.${ext}",
+    "directories": {
+      "app": "",
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "protocols": {
+      "name": "erodus",
+      "schemes": [
+        "erodus"
+      ]
+    },
+    "files": [
+      "main.js",
+      "src/**/*",
+      "package.json",
+      "node_modules/**/*"
+    ],
+    "extraResources": [],
+    "asar": true,
+    "asarUnpack": [],
+    "mac": {
+      "target": [
+        "dmg",
+        "zip",
+        "pkg"
+      ],
+      "category": "public.app-category.utilities",
+      "icon": "build/icon.icns"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "build/icon.ico",
+      "verifyUpdateCodeSignature": true,
+      "signAndEditExecutable": true,
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "erodus",
+      "deleteAppDataOnUninstall": true,
+      "installerIcon": "build/installerIcon.ico",
+      "uninstallerIcon": "build/uninstallerIcon.ico",
+      "installerHeaderIcon": "build/installerHeaderIcon.ico",
+      "license": "build/license.txt",
+      "include": "build/installer.nsh",
+      "runAfterFinish": true,
+      "artifactName": "${productName}-${version}-${os}.${ext}",
+      "menuCategory": "ycs"
+    },
+    "portable": {
+      "artifactName": "${productName}-portable-${version}-${os}.${ext}",
+      "splashImage": "build/splash.bmp"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb",
+        "rpm"
+      ],
+      "icon": "build/icon.png",
+      "category": "Utility"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "9guest",
+        "repo": "erovoice.desktop.us",
+        "releaseType": "release"
+      }
+    ]
+  },
+  "devDependencies": {
+    "electron": "^41.3.0",
+    "electron-builder": "^26.8.1"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.3"
+  }
+}
