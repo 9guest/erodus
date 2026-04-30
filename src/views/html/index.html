@@ -2,18 +2,197 @@
 <html>
   <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline';">
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
     <link href="../css/styles.css" rel="stylesheet">
-    <title>Hello World!</title>
+    <title>EroDUS</title>
   </head>
   <body>
-    <h1>Hello World!</h1>
-    We are using Node.js <span id="node-version"></span>,
-    Chromium <span id="chrome-version"></span>,
-    and Electron <span id="electron-version"></span>.
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">E</div>
+          <div>
+            <div class="brand-title">EroDUS</div>
+            <div class="brand-subtitle">desktop browser</div>
+          </div>
+        </div>
 
-    <!-- You can also require other files to run in this process -->
+        <nav class="nav-stack" aria-label="Primary">
+          <button class="nav-item is-active" data-page="feed" type="button">Erovoice Feed</button>
+          <button class="nav-item" data-page="product" type="button">Product Search</button>
+          <button class="nav-item" data-page="settings" type="button">Settings</button>
+        </nav>
+      </aside>
+
+      <main class="main-panel">
+        <header class="page-header">
+          <div>
+            <p class="eyebrow" id="page-eyebrow">Feed Browser</p>
+            <h1 id="page-title">Erovoice Feed</h1>
+            <p id="page-description">Browse the feed, filter results, and inspect the selected item in the details panel.</p>
+          </div>
+          <div class="header-actions" id="header-actions"></div>
+        </header>
+
+        <section class="content-layout">
+          <div class="main-content">
+            <section class="page-view is-active" data-page-view="feed">
+              <div class="panel-card results-card">
+                <div class="panel-header">
+                  <h2>Feed Results</h2>
+                  <span class="muted" id="feed-status">Ready</span>
+                </div>
+                <div class="results-list" id="feed-results"></div>
+                <div id="feed-load-more" class="load-more-container" style="display:none; padding:0.6rem; text-align:center;">
+                  <button id="feed-load-more-btn" class="primary-button" type="button">Load more</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="page-view" data-page-view="product">
+              <div class="panel-card">
+                <div class="panel-header">
+                  <h2>Search Product</h2>
+                  <span class="muted">RJ, VJ, or cid</span>
+                </div>
+
+                <form class="search-row" id="product-search-form">
+                  <input id="product-search-input" type="text" placeholder="RJ01546453, VJ01000600, or d_734035">
+                  <button class="primary-button" type="submit">Search</button>
+                </form>
+              </div>
+
+              <div class="panel-card results-card">
+                <div class="panel-header">
+                  <h2>Product Result</h2>
+                  <span class="muted" id="product-status">Waiting for input</span>
+                </div>
+                <div class="product-result" id="product-result"></div>
+              </div>
+            </section>
+
+            <section class="page-view" data-page-view="settings">
+              <div class="panel-card">
+                <div class="panel-header">
+                  <h2>Theme Settings</h2>
+                  <span class="muted">Dark, light, or import custom JSON</span>
+                </div>
+
+                <div class="theme-switcher">
+                  <button class="theme-button is-active" data-theme-choice="dark" type="button">Dark</button>
+                  <button class="theme-button" data-theme-choice="light" type="button">Light</button>
+                  <button class="theme-button" data-theme-choice="custom" type="button">Custom</button>
+                </div>
+
+                <div class="theme-editor">
+                  <label>
+                    <span>Custom theme JSON</span>
+                    <textarea id="theme-json" spellcheck="false" rows="12" placeholder='{"name":"Ocean","colors":{"bg":"#0c1220","surface":"#121a2b","text":"#e8eefc","muted":"#94a3b8","accent":"#4fd1c5"}}'></textarea>
+                  </label>
+                  <div class="form-actions">
+                    <button class="primary-button" id="apply-theme-json" type="button">Apply JSON Theme</button>
+                    <input id="theme-json-file" type="file" accept="application/json" hidden>
+                    <button class="ghost-button" id="import-theme-btn" type="button">Import JSON</button>
+                    <button class="ghost-button" id="reset-theme-btn" type="button">Reset</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel-card">
+                <div class="panel-header">
+                  <h2>Theme Preview</h2>
+                </div>
+                <div class="theme-preview">
+                  <div class="preview-swatch accent"></div>
+                  <div class="preview-swatch surface"></div>
+                  <div class="preview-swatch border"></div>
+                  <div class="preview-note">All colors are driven by CSS variables, so custom themes can be added later without changing the layout.</div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <aside class="details-panel">
+            <div class="panel-card sticky-card">
+              <div class="panel-header">
+                <h2>Details</h2>
+                <span class="muted" id="details-source">Nothing selected</span>
+              </div>
+              <div id="details-content" class="details-content">
+                <p class="empty-state">Select a feed item or product to inspect the metadata here.</p>
+              </div>
+            </div>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <!-- Floating filter button -->
+    <button class="floating-filter-btn" id="floating-filter-btn" title="Toggle filters" type="button">⚙️</button>
+
+    <!-- Filter modal overlay -->
+    <div class="filter-modal-overlay" id="filter-modal-overlay" style="display: none;"></div>
+    
+    <!-- Filter modal -->
+    <div class="filter-modal" id="filter-modal" style="display: none;">
+      <div class="filter-modal-content">
+        <div class="filter-modal-header">
+          <h2>Feed Filters</h2>
+          <button class="modal-close-btn" id="modal-close-btn" type="button">✕</button>
+        </div>
+        
+        <form class="filter-grid" id="feed-filter-form-modal">
+          <label>
+            <span>Query</span>
+            <input id="feed-query-modal" type="text" placeholder="RJ01298014">
+          </label>
+          <label>
+            <span>Category</span>
+            <input id="feed-tag-modal" type="text" list="feed-category-list-modal" placeholder="Ear Licking">
+            <datalist id="feed-category-list-modal"></datalist>
+          </label>
+          <label>
+            <span>Published Min</span>
+            <input id="feed-published-min-modal" type="datetime-local">
+          </label>
+          <label>
+            <span>Published Max</span>
+            <input id="feed-published-max-modal" type="datetime-local">
+          </label>
+          <label>
+            <span>Max Results</span>
+            <input id="feed-max-results-modal" type="number" min="1" max="100" value="20">
+          </label>
+          <label>
+            <span>Start Index</span>
+            <input id="feed-start-index-modal" type="number" min="1" value="1">
+          </label>
+          <div class="form-actions">
+            <button class="primary-button" type="submit">Search Feed</button>
+            <button class="ghost-button" id="clear-feed-btn-modal" type="button">Clear</button>
+            <button class="ghost-button" id="refresh-feed-btn-modal" type="button">Refresh</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Details modal for narrow screens -->
+    <div class="details-modal-overlay" id="details-modal-overlay" style="display: none;"></div>
+    <div class="details-modal" id="details-modal" style="display: none;">
+      <div class="details-modal-handle"></div>
+      <div class="panel-header details-modal-header">
+        <h2>Details</h2>
+        <button class="modal-close-btn" id="details-modal-close-btn" type="button">✕</button>
+      </div>
+      <div class="details-modal-meta">
+        <span class="muted" id="details-modal-source">Nothing selected</span>
+      </div>
+      <div id="details-modal-content" class="details-content details-modal-content">
+        <p class="empty-state">Select a feed item or product to inspect the metadata here.</p>
+      </div>
+    </div>
+
     <script src="../js/renderer.js"></script>
   </body>
 </html>

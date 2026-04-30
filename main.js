@@ -1,7 +1,10 @@
 // Modules to control application life and create native browser window
-import { app, BrowserWindow, dialog, shell } from 'electron'
+import { app, BrowserWindow, dialog, shell, ipcMain } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { registerIpcHandlers } from './src/modules/app-ipc-handler.js';
+import { combinedSearch, parseEntries } from './src/modules/mod-erovoice-handler.js';
+import log from './src/modules/app-color-log.js';
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -23,10 +26,13 @@ if (process.defaultApp) {
 async function createWindow () {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 800,
+    width: 1000,
     height: 600,
     webPreferences: {
       preload: preloadDir,
+      // For security: expose a minimal API via contextBridge in preload
+      nodeIntegration: false,
+      contextIsolation: true,
     },
     icon: path.join(__dirname, 'build', 'icon.ico')
   })
@@ -55,8 +61,10 @@ if (!gotTheLock) {
     // dialog.showErrorBox('Welcome Back', `You arrived from : ${commandLine.pop()}`)
   })
 
-  app.whenReady().then(() => {
+  app.whenReady().then(async () => {
+    
     createWindow()
+    registerIpcHandlers(ipcMain, { mainWindow });
 
     app.on('activate', function () {
       // On macOS, it's common to re-create a window in the app when the
@@ -65,10 +73,6 @@ if (!gotTheLock) {
     })
   })
 }
-
-app.on('open-url', function (event, url) {
-  dialog.showErrorBox('Welcome Back', `You arrived from: ${url}`)
-})
 
 // Quit when all windows are closed, except on macOS. There, common
 // for applications and their menu bar to stay active until the user quits
