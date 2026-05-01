@@ -281,6 +281,12 @@ function setPage(page) {
 	elements.navItems.forEach((item) => item.classList.toggle("is-active", item.dataset.page === page));
 	elements.pageViews.forEach((view) => view.classList.toggle("is-active", view.dataset.pageView === page));
 
+	// Hide details panel on product and settings pages
+	const detailsPanel = document.querySelector(".details-panel");
+	if (detailsPanel) {
+		detailsPanel.classList.toggle("is-hidden", page !== "feed");
+	}
+
 	const config = {
 		feed: {
 			eyebrow: "Feed Browser",
@@ -401,7 +407,7 @@ async function loadDetailsFromFeedEntry(entry) {
 
 	try {
 		const productData = await lookupInfo.fetcher(lookupInfo.lookupId);
-		renderProductResult(entry, productData, lookupInfo.sourceLabel);
+		renderProductInDetailsPanel(entry, productData, lookupInfo.sourceLabel);
 		if (isNarrowViewport()) {
 			openDetailsModal();
 		}
@@ -417,77 +423,207 @@ async function loadDetailsFromFeedEntry(entry) {
 	}
 }
 
-function renderProductResult(entry, productData, sourceLabel) {
+// Render product data in the details panel (right sidebar when clicking a feed item)
+function renderProductInDetailsPanel(entry, productData, sourceLabel) {
+	console.log("my entry", entry);
+	if (!productData) {
+		if (elements.detailsContent) {
+			elements.detailsContent.innerHTML = '<p class="empty-state">No product data loaded.</p>';
+		}
+		return;
+	}
+
+	const p = normalizeProduct(productData);
+	state.selectedProduct = productData;
+	if (elements.detailsSource) elements.detailsSource.textContent = sourceLabel;
+	if (elements.detailsModalSource) elements.detailsModalSource.textContent = sourceLabel;
+
+	let detailsHtml = `
+		<div class="detail-group">
+			<h3>${safeText(p.product_name)}</h3>
+			<p class="detail-list">${safeText(p.product_id)}</p>
+	`;
+
+	if (p.product_image) {
+		detailsHtml += `<img class="details-image" src="${p.product_image}" alt="${safeText(p.product_name)}">`;
+	}
+
+	const genre_chips = (p.genres && p.genres.length) ? p.genres : [];
+	const va_chips = (p.voice_by && p.voice_by.length) ? p.voice_by : [];
+
+	if (genre_chips.length) {
+		detailsHtml += `
+			<div class="chip-row">
+				${genre_chips.map((item) => `<span class="chip">${item}</span>`).join("")}
+			</div>
+		`;
+	}
+
+	detailsHtml += `
+		    ${ p.product_id ? `<div class="detail-label" style="margin-top: .75rem;">ID</div><div>${safeText(p.product_id)}</div>` : ""}
+			${ p.product_price || p.product_official_price ? `<div class="detail-label" style="margin-top: .75rem;">Price</div><div>JPY ${safeText(p.product_price || p.product_official_price)}</div>` : ""}
+			${ p.file_size ? `<div class="detail-label" style="margin-top: .75rem;">File Size</div><div>${safeText(p.file_size)}</div>` : ""}
+			${ p.subject ? `<div class="detail-label" style="margin-top: .75rem;">Subject</div><div>${safeText(p.subject)}</div>` : ""}
+			${ p.maker_name ? `<div class="detail-label" style="margin-top: .75rem;">Maker</div><div>${safeText(p.maker_name)}</div>` : ""}
+			${ p.created_by && p.created_by.length ? `<div class="detail-label" style="margin-top: .75rem;">Created by</div><div>${safeText(p.created_by)}</div>` : ""}
+			${ p.scenario_by && p.scenario_by.length ? `<div class="detail-label" style="margin-top: .75rem;">Scenario by</div><div>${safeText(p.scenario_by)}</div>` : ""}
+			${ p.illust_by && p.illust_by.length ? `<div class="detail-label" style="margin-top: .75rem;">Illustration by</div><div>${safeText(p.illust_by)}</div>` : ""}
+			${ va_chips.length ? `<div class="detail-label" style="margin-top: .75rem;">Voice by</div><div>${va_chips.map((item) => `<span class="chip">${item}</span>`).join("")}</div>` : ""}
+			${ p.regist_date ? `<div class="detail-label" style="margin-top: .75rem;">Release date</div><div>${formatDateDisplay(p.regist_date)}</div>` : ""}
+			${ p.update_date ? `<div class="detail-label" style="margin-top: .75rem;">Updated date</div><div>${formatDateDisplay(p.update_date)}</div>` : ""}
+		</div>
+	`;
+
+	detailsHtml += p.product_intro ? `<div class="detail-group"><div class="detail-label">Introduction</div><p class="product-intro">${safeText(p.product_intro).replaceAll('\n', '<br>')}</p></div>` : "";
+
+	const DownloadLinks = entry.content?.downloadLinks || [];
+
+	if (DownloadLinks.length) {
+		detailsHtml += `
+			<div class="detail-group">
+				<div class="detail-label">Download Links</div>
+				<div class="detail-list">
+					${DownloadLinks.map((link) => `<div><a class="inline-link" href="#" data-open-link="${link.link}">${link.typename}</a></div>`).join("")}
+				</div>
+			</div>
+		`;
+	}
+
+	if (elements.detailsContent) {
+		elements.detailsContent.innerHTML = detailsHtml;
+	}
+	if (elements.detailsModalContent) {
+		elements.detailsModalContent.innerHTML = detailsHtml;
+	}
+
+	// Attach link handlers for any data-open-link anchors in details containers
+	const detailContainers = [elements.detailsContent, elements.detailsModalContent].filter(Boolean);
+	detailContainers.forEach((container) => {
+		container.querySelectorAll("[data-open-link]").forEach((link) => {
+			link.addEventListener("click", async (event) => {
+				event.preventDefault();
+				await window.erodusAPI.openExternalLink(link.dataset.openLink);
+			});
+		});
+	});
+}
+
+// Normalize product data from different API sources (FANZA vs DLSite)
+function normalizeProduct(productData) {
+	if (!productData) return {};
+	let site = "unknown";
+	if (productData.cid || (productData.url && productData.url.includes("dmm.co.jp"))) {
+		site = "FANZA";
+	} else if (productData.product_id || (productData.url && productData.url.includes("dlsite.com"))) {
+		site = "DLSite";
+	}
+
+	return {
+		product_id: productData.product_id || productData.cid || null,
+		product_name: productData.product_name || productData.title || null,
+		product_alt_name: productData.product_alt_name || null,
+		product_intro: productData.product_intro || productData.description || null,
+		product_image: productData.product_image?.url || productData.image || null,
+		product_image_samples: Array.isArray(productData.product_image_samples) ? productData.product_image_samples.map(s => s.url).filter(Boolean) : [],
+		product_price: productData.product_price || productData.price || null,
+		product_official_price: productData.product_official_price || null,
+		circle_id: productData.circle_id || null,
+		maker_id: productData.maker_id || null,
+		maker_name: productData.maker_name || null,
+		created_by: productData.created_by || null,
+		scenario_by: productData.scenario_by || null,
+		illust_by: productData.illust_by || null,
+		voice_by: productData.voice_by || productData.voice_actor || [],
+		genres: productData.genres || productData.genre_tag || [],
+		update_date: productData.update_date || null,
+		regist_date: productData.regist_date || productData.release_date || null,
+		url: productData.url || null,
+		site: site,
+		subject: productData.subject || null,
+		file_size: productData.file_size || productData.filesize || null,
+	}
+}
+
+// Render product data in the search result area (main content when searching for a product)
+function renderProductInSearchResult(productData, sourceLabel) {
 	if (!productData) {
 		elements.productResult.innerHTML = '<p class="empty-state">No product data loaded yet.</p>';
 		return;
 	}
 
+
+	const p = normalizeProduct(productData);
 	state.selectedProduct = productData;
-	if (elements.detailsSource) elements.detailsSource.textContent = sourceLabel;
-	if (elements.detailsModalSource) elements.detailsModalSource.textContent = sourceLabel;
-	elements.productResult.innerHTML = "";
+	if (elements.productStatus) elements.productStatus.textContent = p.id || sourceLabel;
 
 	const summaryRows = [];
-	const title = productData.product_name || productData.title || productData.product_title;
-	const image = productData.product_image?.url || productData.image;
-
-	if (title) {
-		summaryRows.push(`<div class="product-card"><div class="product-title">${safeText(title)}</div></div>`);
+	if (p.product_name) {
+		summaryRows.push(`<div class="product-card"><div class="product-title">${safeText(p.product_name)}</div></div>`);
 	}
 
-	if (image) {
-		summaryRows.push(`<img class="product-image" src="${image}" alt="${safeText(title)}">`);
+	if (p.product_image) {
+		summaryRows.push(`<img class="product-image" src="${p.product_image}" alt="${safeText(p.product_name)}">`);
 	}
 
-	summaryRows.push(`
-		<div class="product-card product-meta">
-			<dl>
-				<div><dt>ID</dt><dd>${safeText(productData.product_id || productData.cid)}</dd></div>
-				<div><dt>Age / Format</dt><dd>${safeText(productData.age_category || productData.work_format)}</dd></div>
-				<div><dt>Price</dt><dd>${safeText(productData.product_price || productData.product_official_price || productData.filesize)}</dd></div>
-				<div><dt>Maker / Circle</dt><dd>${safeText(productData.maker_name || productData.circle_id || productData.subject)}</dd></div>
-			</dl>
-		</div>
-	`);
+	const genre_chips = (p.genres && p.genres.length) ? p.genres : [];
+	const va_chips = (p.voice_by && p.voice_by.length) ? p.voice_by : [];
 
-	const tags = productData.genres || productData.genre_tag || [];
-	const voices = productData.voice_by || productData.voice_actor || [];
-	const chips = tags.length ? tags : voices;
-	if (chips.length) {
+	if (genre_chips.length) {
 		summaryRows.push(`
 			<div class="product-card">
+				<div class="detail-label">Genres</div>
 				<div class="chip-row">
-					${chips.map((item) => `<span class="chip">${item}</span>`).join("")}
+					${genre_chips.map((genre) => `<span class="chip">${genre}</span>`).join("")}
 				</div>
 			</div>
 		`);
 	}
 
-	if (productData.url || productData.product_link) {
+	summaryRows.push(`
+		<div class="product-card product-meta">
+			<dl>
+				${p.product_id ? `<div><dt>ID</dt><dd>${safeText(p.product_id)}</dd></div>` : ""}
+				${p.product_price || p.product_official_price ? `<div><dt>Price</dt><dd>JPY ${safeText(p.product_price || p.product_official_price)}</dd></div>` : ""}
+				${p.file_size ? `<div><dt>File size</dt><dd>${safeText(p.file_size)}</dd></div>` : ""}
+				${p.subject ? `<div><dt>Subject</dt><dd>${safeText(p.subject)}</dd></div>` : ""}
+				${p.maker_name ? `<div><dt>Maker</dt><dd>${safeText(p.maker_name)}</dd></div>` : ""}
+				${p.created_by && p.created_by.length ? `<div><dt>Created by</dt><dd>${safeText(p.created_by)}</dd></div>` : ""}
+				${p.scenario_by && p.scenario_by.length ? `<div><dt>Scenario by</dt><dd>${safeText(p.scenario_by)}</dd></div>` : ""}
+				${p.illust_by && p.illust_by.length ? `<div><dt>Illustration by</dt><dd>${safeText(p.illust_by)}</dd></div>` : ""}
+				${va_chips.length ? `<div><dt>Voice by</dt><dd>${va_chips.map((va) => `<span class="chip">${va}</span>`).join("")}</dd></div>` : ""}
+				${p.regist_date ? `<div><dt>Release date</dt><dd>${formatDateDisplay(p.regist_date)}</dd></div>` : ""}
+				${p.update_date ? `<div><dt>Update date</dt><dd>${formatDateDisplay(p.update_date)}</dd></div>` : ""}
+			</dl>
+		</div>
+	`);
+
+	if (p.product_intro){
 		summaryRows.push(`
 			<div class="product-card">
-				<a class="inline-link" href="#" data-open-link="${productData.url || productData.product_link}">Open product page</a>
+				<div class="detail-label">Description</div>
+				<div class="product-intro">${safeText(p.product_intro).replaceAll("\n", "<br/>")}</div>
+			</div>
+		`);
+	}
+	
+
+	if (p.url) {
+		summaryRows.push(`
+			<div class="product-card">
+				<a class="inline-link" href="#" data-open-link="${p.url}">Open product page</a>
 			</div>
 		`);
 	}
 
 	elements.productResult.innerHTML = summaryRows.join("");
-	if (elements.detailsContent) {
-		elements.detailsContent.innerHTML = `
-			<div class="detail-group">
-				<h3>${safeText(productData.product_name || productData.title)}</h3>
-				<p class="detail-list">${safeText(productData.product_id || productData.cid)}</p>
-				${productData.image || productData.product_image?.url ? `<img class="details-image" src="${productData.image || productData.product_image?.url}" alt="${safeText(productData.product_name || productData.title)}">` : ""}
-			</div>
-		`;
-	}
-	if (elements.detailsModalContent) {
-		elements.detailsModalContent.innerHTML = elements.detailsContent ? elements.detailsContent.innerHTML : "";
-	}
-	if (isNarrowViewport()) {
-		openDetailsModal();
-	}
+
+	// Attach link handlers
+	elements.productResult.querySelectorAll("[data-open-link]").forEach((link) => {
+		link.addEventListener("click", async (event) => {
+			event.preventDefault();
+			await window.erodusAPI.openExternalLink(link.dataset.openLink);
+		});
+	});
 }
 
 function getFeedFiltersFromForm() {
@@ -677,14 +813,14 @@ async function searchProduct() {
 	try {
 		if (normalized.startsWith("d_")) {
 			const product = await window.erodusAPI.getFanzaProductInfo(rawValue);
-			renderProductResult(product, "FANZA / DMM");
+			renderProductInSearchResult(product, "FANZA / DMM");
 			elements.productStatus.textContent = product?.cid || rawValue;
 			return;
 		}
 
 		if (normalized.startsWith("rj") || normalized.startsWith("vj")) {
 			const product = await window.erodusAPI.getDlsiteProductInfo(rawValue);
-			renderProductResult(product, "DLSite");
+			renderProductInSearchResult(product, "DLSite");
 			elements.productStatus.textContent = product?.product_id || rawValue;
 			return;
 		}

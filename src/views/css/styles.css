@@ -199,6 +199,10 @@ input:focus, textarea:focus {
     margin-bottom: 10px;
 }
 
+.details-panel.is-hidden {
+  display: none;
+}
+
 .sticky-card {
   display: flex;
   flex-direction: column;
@@ -300,8 +304,21 @@ input:focus, textarea:focus {
 .detail-label, .product-meta dt { font-weight: 700; font-size: 0.85rem; }
 .product-meta, .detail-list { color: var(--muted); font-size: 0.85rem; }
 
-.chip-row { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-.chip { border-radius: 999px; border: 1px solid var(--border); padding: 0.2rem 0.5rem; font-size: 0.75rem; color: var(--muted); }
+.chip-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 10px;}
+.chip { 
+  border-radius: 999px; 
+  border: 1px solid var(--border); 
+  padding: 0.2rem 0.5rem; 
+  font-size: 0.75rem; 
+  color: var(--muted); 
+}
+
+.product-intro {
+  white-space: pre-wrap;
+  font-size: 0.85rem;
+  margin-top: 10px;
+  color: var(--muted);
+}
 
 .details-content {
   display: grid;
@@ -343,7 +360,7 @@ input:focus, textarea:focus {
 
 .product-meta dl { margin: 0; display: grid; gap: 0.5rem; }
 .product-meta dt { color: var(--text); }
-.product-meta dd { margin: 0; }
+.product-meta dd { margin-left: 0; margin-top: 5px; }
 
 .inline-link { color: var(--accent); text-decoration: none; font-size: 0.9rem; }
 .inline-link:hover { text-decoration: underline; }
@@ -439,7 +456,7 @@ input:focus, textarea:focus {
   bottom: 0.75rem;
   transform: translate(-50%, 110%);
   width: min(760px, calc(100vw - 1rem));
-  max-height: min(78vh, 760px);
+  max-height: min(90vh, 850px);
   overflow: auto;
   background: var(--surface);
   border: 1px solid var(--border);
