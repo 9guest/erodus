@@ -482,8 +482,23 @@ function renderProductInDetailsPanel(entry, productData, sourceLabel) {
 		detailsHtml += `
 			<div class="detail-group">
 				<div class="detail-label">Download Links</div>
-				<div class="detail-list">
+				<div class="detail-list" style="margin-top: 10px;">
 					${DownloadLinks.map((link) => `<div><a class="inline-link" href="#" data-open-link="${link.link}">${link.typename}</a></div>`).join("")}
+				</div>
+			</div>
+		`;
+	}
+
+	const productUrl = p.url || entry.content?.productLink || null;
+	const erovoiceUrl = entry.links?.find((l) => l.rel === "alternate")?.href || null;
+
+	if (productUrl || erovoiceUrl) {
+		detailsHtml += `
+			<div class="detail-group">
+				<div class="detail-label">More Links</div>
+				<div class="detail-list" style="margin-top: 10px;">
+					${productUrl ? `<div><a class="inline-link" href="#" data-open-link="${productUrl}">Product Page</a></div>` : ""}
+					${erovoiceUrl ? `<div><a class="inline-link" href="#" data-open-link="${erovoiceUrl}">Erovoice Entry</a></div>` : ""}
 				</div>
 			</div>
 		`;
