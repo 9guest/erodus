@@ -764,8 +764,17 @@ async function loadMore() {
     }
 }
 
+// This function parses the raw HTML content from the feed entry 
+// to extract structured metadata like image, circle, release date, 
+// voice actor, file size, download links, and product info. 
+// The feed content is not guaranteed to be consistent, so this 
+// function uses regex patterns and heuristics to pull out relevant information.
+//
+// Note: This function is a copy from the Backend Erovoice Handler for fast access
+// in the renderer without needing to round-trip through IPC for parsing feed content.
 function parseFeedContent(contentHtml) {
-	const metadata = {
+	console.log("Parsing feed content HTML:", contentHtml);
+		const metadata = {
 		image: null,
 		circle: null,
 		release: null,
@@ -774,42 +783,103 @@ function parseFeedContent(contentHtml) {
 		downloadLinks: [],
 		productId: null,
 		productLink: null,
+		source: null,
 	};
 
-	if (!contentHtml) {
-		return metadata;
+	if (!contentHtml) return metadata;
+
+	// Image
+	const imgMatch = contentHtml.match(
+		/src="(https:\/\/[^"]*\.(?:jpg|jpeg|png|gif|webp|svg))/i
+	);
+	if (imgMatch) metadata.image = imgMatch[1];
+
+	// Circle
+	const circleMatch = contentHtml.match(/Circle\s*:\s*([^<&]+)/);
+	if (circleMatch) {
+		metadata.circle = circleMatch[1].trim().replace(/&nbsp;/g, "");
 	}
 
-	// Match https image URLs with common image extensions or known hosts
-	const imageMatch = contentHtml.match(/src="(https?:\/\/[^\"]+\.(?:jpg|jpeg|png|gif|webp|svg))/i);
-	if (imageMatch) metadata.image = imageMatch[1];
-
-	const circleMatch = contentHtml.match(/Circle\s*:\s*([^<&]+)/);
-	if (circleMatch) metadata.circle = circleMatch[1].trim().replace(/&nbsp;/g, "");
-
+	// Release
 	const releaseMatch = contentHtml.match(/Release\s*:\s*([^<]+)/);
 	if (releaseMatch) metadata.release = releaseMatch[1].trim();
 
-	const voiceMatch = contentHtml.match(/Voice Actor\s*:\s*([^<]+)/);
-	if (voiceMatch) metadata.voiceActor = voiceMatch[1].trim();
+	// Voice Actor
+	const voiceActorMatch = contentHtml.match(/Voice Actor\s*:\s*([^<]+)/);
+	if (voiceActorMatch) {
+		metadata.voiceActor = voiceActorMatch[1].trim().replace(/&nbsp;/g, "");
+	}
 
+	// File Size
 	const fileSizeMatch = contentHtml.match(/File Size\s*:\s*([^<]+)/);
 	if (fileSizeMatch) metadata.fileSize = fileSizeMatch[1].trim();
 
-	const linkRegex = /<a\s+href="([^"]+)">([^<]+)<\/a>/g;
-	let linkMatch;
-	while ((linkMatch = linkRegex.exec(contentHtml)) !== null) {
-		const href = linkMatch[1];
-		const typename = linkMatch[2].trim();
-		if (href.includes("ouo.io") || href.includes("dlsite")) {
-			metadata.downloadLinks.push({ typename, link: href });
+	// Download links
+	const downloadRows = contentHtml.match(/<div>.*?<\/div>/g) || [];
+
+	downloadRows.forEach((row) => {
+		const links = [...row.matchAll(/<a\s+href="([^"]+)">([^<]+)<\/a>/g)];
+		if (!links.length) return;
+
+		// Multipart format
+		const providerMatch = row.match(/^<div>([^|<]+)\s*\|/);
+
+		if (providerMatch) {
+		const provider = providerMatch[1].trim();
+
+		links.forEach((match) => {
+			const href = match[1];
+			const label = match[2].trim();
+
+			if (href.includes("ouo.io")) {
+			const partMatch = label.match(/Part\s*(\d+)/i);
+
+			metadata.downloadLinks.push({
+				typename: partMatch
+				? `${provider}_Part${partMatch[1]}`
+				: provider,
+				link: href,
+			});
+			}
+		});
+
+		return;
 		}
+
+		// Single provider links
+		links.forEach((match) => {
+		const href = match[1];
+		const provider = match[2].trim();
+
+		if (href.includes("ouo.io")) {
+			metadata.downloadLinks.push({
+			typename: provider,
+			link: href,
+			});
+		}
+		});
+	});
+
+	// DLsite
+	const dlsiteMatch = contentHtml.match(
+		/(https:\/\/www\.dlsite\.com\/[^"]*product_id\/(RJ\d+)\.html)/
+	);
+
+	if (dlsiteMatch) {
+		metadata.productLink = dlsiteMatch[1];
+		metadata.productId = dlsiteMatch[2];
+		metadata.source = "dlsite";
 	}
 
-	const productMatch = contentHtml.match(/(https:\/\/www\.dlsite\.com\/[^\/]+\/work\/=[^"]+product_id\/(RJ\d+)\.html)/);
-	if (productMatch) {
-		metadata.productLink = productMatch[1];
-		metadata.productId = productMatch[2];
+	// DMM
+	const dmmMatch = contentHtml.match(
+		/(https:\/\/www\.dmm\.co\.jp\/[^"]*cid=([a-zA-Z0-9_]+)\/?)/
+	);
+
+	if (dmmMatch) {
+		metadata.productLink = dmmMatch[1];
+		metadata.productId = dmmMatch[2];
+		metadata.source = "dmm";
 	}
 
 	return metadata;

@@ -1,4 +1,5 @@
 import axios from "axios";
+import log from "./app-color-log.js";
 
 const baseURL = "http://e.erovoice.us/feeds/posts/default?alt=json";
 const pageSize = 20;
@@ -32,6 +33,7 @@ export function parseEntries(feedData) {
 }
 
 /**
+ * !!!! This Function is not being used. There is a copy in the frontend renderer.js
  * 把entry.content.$t中的HTML内容解析并提取出相关的元数据（如图片、Circle、Release日期、声优、文件大小、下载链接、DLsite商品ID和链接等）
  * Parse entry content HTML and extract metadata
  * @param {string} contentHtml - The HTML content from entry.content.$t
@@ -47,63 +49,103 @@ export function parseEntryContent(contentHtml) {
     downloadLinks: [],
     productId: null,
     productLink: null,
+    source: null,
   };
 
-  if (!contentHtml) {
-    return metadata;
-  }
+  if (!contentHtml) return metadata;
 
-  // Extract image URL - match https image URLs with common image extensions or known hosting services
-  const imgMatch = contentHtml.match(/src="(https:\/\/[^"]*\.(?:jpg|jpeg|png|gif|webp|svg))/i);
-  if (imgMatch) {
-    metadata.image = imgMatch[1];
-  }
+  // Image
+  const imgMatch = contentHtml.match(
+    /src="(https:\/\/[^"]*\.(?:jpg|jpeg|png|gif|webp|svg))/i
+  );
+  if (imgMatch) metadata.image = imgMatch[1];
 
-  // Extract Circle
+  // Circle
   const circleMatch = contentHtml.match(/Circle\s*:\s*([^<&]+)/);
   if (circleMatch) {
     metadata.circle = circleMatch[1].trim().replace(/&nbsp;/g, "");
   }
 
-  // Extract Release date
+  // Release
   const releaseMatch = contentHtml.match(/Release\s*:\s*([^<]+)/);
-  if (releaseMatch) {
-    metadata.release = releaseMatch[1].trim();
-  }
+  if (releaseMatch) metadata.release = releaseMatch[1].trim();
 
-  // Extract Voice Actor
+  // Voice Actor
   const voiceActorMatch = contentHtml.match(/Voice Actor\s*:\s*([^<]+)/);
   if (voiceActorMatch) {
-    metadata.voiceActor = voiceActorMatch[1].trim();
+    metadata.voiceActor = voiceActorMatch[1].trim().replace(/&nbsp;/g, "");
   }
 
-  // Extract File Size
+  // File Size
   const fileSizeMatch = contentHtml.match(/File Size\s*:\s*([^<]+)/);
-  if (fileSizeMatch) {
-    metadata.fileSize = fileSizeMatch[1].trim();
-  }
+  if (fileSizeMatch) metadata.fileSize = fileSizeMatch[1].trim();
 
-  // Extract download links
-  const linkRegex = /<a\s+href="([^"]+)">([^<]+)<\/a>/g;
-  let linkMatch;
-  while ((linkMatch = linkRegex.exec(contentHtml)) !== null) {
-    const href = linkMatch[1];
-    const typeName = linkMatch[2].trim();
-    
-    // Filter to only download links (ouo.io, etc.)
-    if (href.includes("ouo.io") || href.includes("dlsite")) {
-      metadata.downloadLinks.push({
-        typename: typeName,
-        link: href,
+  // Download links
+  const downloadRows = contentHtml.match(/<div>.*?<\/div>/g) || [];
+
+  downloadRows.forEach((row) => {
+    const links = [...row.matchAll(/<a\s+href="([^"]+)">([^<]+)<\/a>/g)];
+    if (!links.length) return;
+
+    // Multipart format
+    const providerMatch = row.match(/^<div>([^|<]+)\s*\|/);
+
+    if (providerMatch) {
+      const provider = providerMatch[1].trim();
+
+      links.forEach((match) => {
+        const href = match[1];
+        const label = match[2].trim();
+
+        if (href.includes("ouo.io")) {
+          const partMatch = label.match(/Part\s*(\d+)/i);
+
+          metadata.downloadLinks.push({
+            typename: partMatch
+              ? `${provider}_Part${partMatch[1]}`
+              : provider,
+            link: href,
+          });
+        }
       });
+
+      return;
     }
+
+    // Single provider links
+    links.forEach((match) => {
+      const href = match[1];
+      const provider = match[2].trim();
+
+      if (href.includes("ouo.io")) {
+        metadata.downloadLinks.push({
+          typename: provider,
+          link: href,
+        });
+      }
+    });
+  });
+
+  // DLsite
+  const dlsiteMatch = contentHtml.match(
+    /(https:\/\/www\.dlsite\.com\/[^"]*product_id\/(RJ\d+)\.html)/
+  );
+
+  if (dlsiteMatch) {
+    metadata.productLink = dlsiteMatch[1];
+    metadata.productId = dlsiteMatch[2];
+    metadata.source = "dlsite";
   }
 
-  // Extract product ID and product link from dlsite URL
-  const productMatch = contentHtml.match(/(https:\/\/www\.dlsite\.com\/[^\/]+\/work\/=[^"]+product_id\/(RJ\d+)\.html)/);
-  if (productMatch) {
-    metadata.productLink = productMatch[1];
-    metadata.productId = productMatch[2];
+  // DMM
+  const dmmMatch = contentHtml.match(
+    /(https:\/\/www\.dmm\.co\.jp\/[^"]*cid=([a-zA-Z0-9_]+)\/?)/
+  );
+
+  if (dmmMatch) {
+    metadata.productLink = dmmMatch[1];
+    metadata.productId = dmmMatch[2];
+    metadata.source = "dmm";
   }
 
   return metadata;
