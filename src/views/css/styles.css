@@ -492,6 +492,106 @@ input:focus, textarea:focus {
   overflow: auto;
 }
 
+.image-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  z-index: 104;
+}
+
+.image-modal {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(1100px, calc(100vw - 1rem));
+  max-height: min(92vh, 920px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  z-index: 105;
+  padding: 0.9rem;
+  overflow: hidden;
+}
+
+.image-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.image-modal-header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.image-modal-meta {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.image-modal-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.image-modal-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  touch-action: none;
+}
+
+.image-modal-stage img {
+  max-width: none;
+  max-height: none;
+  transform-origin: center center;
+  transition: transform 0.12s ease;
+  user-select: none;
+  -webkit-user-drag: none;
+  cursor: zoom-in;
+}
+
+.image-modal-stage.is-panning img {
+  cursor: grab;
+}
+
+.image-modal-stage.is-panning img:active {
+  cursor: grabbing;
+}
+
+.image-modal-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.image-modal-nav-btn.prev {
+  left: 0.75rem;
+}
+
+.image-modal-nav-btn.next {
+  right: 0.75rem;
+}
+
+.image-modal-download-link {
+  display: none;
+}
+
 .modal-close-btn {
   background: none;
   border: none;
@@ -537,6 +637,24 @@ input:focus, textarea:focus {
   }
   .details-modal {
     display: block;
+  }
+}
+
+@media (max-width: 720px) {
+  .image-modal {
+    width: calc(100vw - 1rem);
+    max-height: calc(100vh - 1rem);
+    padding: 0.75rem;
+  }
+
+  .image-modal-toolbar {
+    gap: 0.4rem;
+  }
+
+  .image-modal-toolbar .ghost-button,
+  .image-modal-toolbar .primary-button {
+    flex: 1 1 calc(50% - 0.4rem);
+    justify-content: center;
   }
 }
 

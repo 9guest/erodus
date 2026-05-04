@@ -2,9 +2,11 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com;">
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <link href="../css/styles.css" rel="stylesheet">
+    <link href="../css/slideshow.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <title>EroDUS</title>
   </head>
   <body>
@@ -132,7 +134,7 @@
     </div>
 
     <!-- Floating filter button -->
-    <button class="floating-filter-btn" id="floating-filter-btn" title="Toggle filters" type="button">⚙️</button>
+    <button class="floating-filter-btn" id="floating-filter-btn" title="Toggle filters" type="button"><i class="fas fa-filter"></i></button>
 
     <!-- Filter modal overlay -->
     <div class="filter-modal-overlay" id="filter-modal-overlay" style="display: none;"></div>
@@ -193,6 +195,29 @@
       </div>
       <div id="details-modal-content" class="details-content details-modal-content">
         <p class="empty-state">Select a feed item or product to inspect the metadata here.</p>
+      </div>
+    </div>
+
+    <!-- Image preview modal -->
+    <div class="image-modal-overlay" id="image-modal-overlay" style="display: none;"></div>
+    <div class="image-modal" id="image-modal" style="display: none;">
+      <div class="image-modal-header">
+        <div>
+          <h2 id="image-modal-title">Image Preview</h2>
+          <div class="muted image-modal-meta" id="image-modal-meta">Click an image to preview it here.</div>
+        </div>
+        <button class="modal-close-btn" id="image-modal-close-btn" type="button">✕</button>
+      </div>
+      <div class="image-modal-toolbar">
+        <button class="ghost-button" id="image-modal-prev-btn" type="button">Previous</button>
+        <button class="ghost-button" id="image-modal-zoom-out-btn" type="button">Zoom out</button>
+        <button class="ghost-button" id="image-modal-zoom-reset-btn" type="button">Reset</button>
+        <button class="ghost-button" id="image-modal-zoom-in-btn" type="button">Zoom in</button>
+        <button class="primary-button" id="image-modal-download-btn" type="button">Download</button>
+        <button class="ghost-button" id="image-modal-next-btn" type="button">Next</button>
+      </div>
+      <div class="image-modal-stage" id="image-modal-stage">
+        <img id="image-modal-image" alt="Image preview">
       </div>
     </div>
 

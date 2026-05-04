@@ -1,0 +1,57 @@
+/* Simple slideshow styles used in product details */
+.slideshow {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5rem;
+	overflow: hidden;
+	width: 100%;
+}
+.slideshow img {
+	max-width: 100%;
+	max-height: 320px;
+	display: none;
+	object-fit: contain;
+	border-radius: 6px;
+}
+.slideshow img.is-active {
+	display: block;
+}
+.slideshow .slideshow-controls {
+	position: absolute;
+	top: 50%;
+	left: 0;
+	right: 0;
+	display: flex;
+	justify-content: space-between;
+	transform: translateY(-50%);
+	pointer-events: none;
+	z-index: 2;
+}
+.slideshow button {
+	pointer-events: auto;
+	background: rgba(0,0,0,0.45);
+	color: var(--text, #fff);
+	border: none;
+	padding: 0.35rem 0.6rem;
+	margin: 0 0.5rem;
+	border-radius: 4px;
+	cursor: pointer;
+}
+.slideshow .indicator-row {
+	margin-top: 0.5rem;
+	display: flex;
+	gap: 0.35rem;
+	justify-content: center;
+	width: 100%;
+}
+.slideshow .indicator {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: rgba(255,255,255,0.25);
+}
+.slideshow .indicator.is-active { background: var(--accent, #65d6c2); }
+

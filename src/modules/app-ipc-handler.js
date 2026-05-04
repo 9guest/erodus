@@ -1,8 +1,10 @@
-import {dialog, shell, BrowserWindow, app} from "electron";
+import {dialog, shell, BrowserWindow} from "electron";
 import log from "./app-color-log.js";
 import * as erovoiceHandler from "./mod-erovoice-handler.js";
 import * as dlsiteHandler from "./mod-dlsite-handler.js";
 import * as fanzaHandler from "./mod-fanza-handler.js";
+import { writeFile } from "node:fs/promises";
+import path from "node:path";
 
 export function registerIpcHandlers(ipcMain, context) {
 
@@ -66,6 +68,42 @@ export function registerIpcHandlers(ipcMain, context) {
             return result;
         } catch (error) {
             log.error('Error showing message box:', error);
+            throw error;
+        }
+    });
+
+    ipcMain.handle('download-image', async (event, payload) => {
+        try {
+            const imageUrl = payload?.url;
+            if (!imageUrl) {
+                throw new Error('Missing image URL');
+            }
+
+            const urlObject = new URL(imageUrl);
+            const fallbackName = payload?.filename || path.basename(urlObject.pathname) || 'image';
+            const { canceled, filePath } = await dialog.showSaveDialog(BrowserWindow.getFocusedWindow(), {
+                defaultPath: fallbackName,
+                filters: [
+                    { name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'] },
+                    { name: 'All Files', extensions: ['*'] },
+                ],
+            });
+
+            if (canceled || !filePath) {
+                return { canceled: true };
+            }
+
+            const response = await fetch(imageUrl);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+            }
+
+            const buffer = Buffer.from(await response.arrayBuffer());
+            await writeFile(filePath, buffer);
+
+            return { canceled: false, filePath };
+        } catch (error) {
+            log.error('Error downloading image:', error);
             throw error;
         }
     });

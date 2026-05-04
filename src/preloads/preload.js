@@ -14,6 +14,7 @@ const erodusAPI = {
   getFanzaProductInfo: (cid) => ipcRenderer.invoke('get-fanza-product-info', cid),
   openExternalLink: (url) => ipcRenderer.invoke('open-external-link', url),
   showMessageBox: (options) => ipcRenderer.invoke('show-message-box', options),
+  downloadImage: (payload) => ipcRenderer.invoke('download-image', payload),
 };
 
 contextBridge.exposeInMainWorld('erodusAPI', erodusAPI);

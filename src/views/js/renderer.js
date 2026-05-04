@@ -47,6 +47,19 @@ const state = {
 	selectedProduct: null,
 	categories: [],
 	themeName: "dark",
+	imageViewer: {
+		images: [],
+		index: 0,
+		scale: 1,
+		x: 0,
+		y: 0,
+		dragging: false,
+		dragStartX: 0,
+		dragStartY: 0,
+		panStartX: 0,
+		panStartY: 0,
+		title: "Image Preview",
+	},
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -77,6 +90,19 @@ const elements = {
 	detailsModalCloseBtn: $("#details-modal-close-btn"),
 	detailsModalSource: $("#details-modal-source"),
 	detailsModalContent: $("#details-modal-content"),
+	imageModalOverlay: $("#image-modal-overlay"),
+	imageModal: $("#image-modal"),
+	imageModalCloseBtn: $("#image-modal-close-btn"),
+	imageModalTitle: $("#image-modal-title"),
+	imageModalMeta: $("#image-modal-meta"),
+	imageModalImage: $("#image-modal-image"),
+	imageModalStage: $("#image-modal-stage"),
+	imageModalPrevBtn: $("#image-modal-prev-btn"),
+	imageModalNextBtn: $("#image-modal-next-btn"),
+	imageModalZoomInBtn: $("#image-modal-zoom-in-btn"),
+	imageModalZoomOutBtn: $("#image-modal-zoom-out-btn"),
+	imageModalZoomResetBtn: $("#image-modal-zoom-reset-btn"),
+	imageModalDownloadBtn: $("#image-modal-download-btn"),
 	productSearchForm: $("#product-search-form"),
 	productSearchInput: $("#product-search-input"),
 	productStatus: $("#product-status"),
@@ -125,6 +151,172 @@ function closeDetailsModal() {
 	elements.detailsModal.style.display = "none";
 }
 
+function showImageModal(images, startIndex = 0, title = "Image Preview") {
+	const normalizedImages = Array.isArray(images) ? images.filter(Boolean) : [];
+	if (!normalizedImages.length) return;
+
+	state.imageViewer.images = normalizedImages;
+	state.imageViewer.index = Math.max(0, Math.min(startIndex, normalizedImages.length - 1));
+	state.imageViewer.scale = 1;
+	state.imageViewer.x = 0;
+	state.imageViewer.y = 0;
+	state.imageViewer.dragging = false;
+	state.imageViewer.title = title || "Image Preview";
+
+	if (elements.imageModalTitle) elements.imageModalTitle.textContent = state.imageViewer.title;
+	renderImageModal();
+	if (elements.imageModalOverlay) elements.imageModalOverlay.style.display = "block";
+	if (elements.imageModal) elements.imageModal.style.display = "flex";
+}
+
+function closeImageModal() {
+	if (elements.imageModalOverlay) elements.imageModalOverlay.style.display = "none";
+	if (elements.imageModal) elements.imageModal.style.display = "none";
+}
+
+function renderImageModal() {
+	const viewer = state.imageViewer;
+	const currentImage = viewer.images[viewer.index];
+	if (!currentImage) return;
+
+	if (elements.imageModalImage) {
+		elements.imageModalImage.src = currentImage;
+		elements.imageModalImage.alt = viewer.title;
+		elements.imageModalImage.style.transform = `translate(${viewer.x}px, ${viewer.y}px) scale(${viewer.scale})`;
+		elements.imageModalImage.style.cursor = viewer.scale > 1 ? "grab" : "zoom-in";
+	}
+
+	if (elements.imageModalStage) {
+		elements.imageModalStage.style.cursor = viewer.scale > 1 ? "grab" : "default";
+	}
+
+	if (elements.imageModalMeta) {
+		elements.imageModalMeta.textContent = `${viewer.index + 1} of ${viewer.images.length}`;
+	}
+
+	if (elements.imageModalPrevBtn) {
+		elements.imageModalPrevBtn.style.visibility = viewer.images.length > 1 ? "visible" : "hidden";
+	}
+	if (elements.imageModalNextBtn) {
+		elements.imageModalNextBtn.style.visibility = viewer.images.length > 1 ? "visible" : "hidden";
+	}
+
+	if (elements.imageModalDownloadBtn) {
+		elements.imageModalDownloadBtn.disabled = !currentImage;
+	}
+}
+
+function shiftImage(direction) {
+	if (!state.imageViewer.images.length) return;
+	state.imageViewer.index = (state.imageViewer.index + direction + state.imageViewer.images.length) % state.imageViewer.images.length;
+	state.imageViewer.scale = 1;
+	state.imageViewer.x = 0;
+	state.imageViewer.y = 0;
+	renderImageModal();
+}
+
+function zoomImage(delta) {
+	state.imageViewer.scale = Math.min(4, Math.max(0.25, state.imageViewer.scale + delta));
+	if (state.imageViewer.scale === 1) {
+		state.imageViewer.x = 0;
+		state.imageViewer.y = 0;
+	}
+	renderImageModal();
+}
+
+async function downloadCurrentImage() {
+	const currentImage = state.imageViewer.images[state.imageViewer.index];
+	if (!currentImage) return;
+	const filename = deriveFilenameFromUrl(currentImage, state.imageViewer.title || "image");
+	const result = await window.erodusAPI.downloadImage({
+		url: currentImage,
+		filename,
+	});
+	if (result?.canceled === false) {
+		window.erodusAPI.showMessageBox({
+			type: "info",
+			title: "Image saved",
+			message: "The image was downloaded successfully.",
+		});
+	}
+}
+
+function deriveFilenameFromUrl(imageUrl, fallbackName = "image") {
+	try {
+		const url = new URL(imageUrl);
+		const rawName = pathBaseName(url.pathname) || fallbackName;
+		const safeName = rawName.replace(/[^a-z0-9-_]+/gi, "_").replace(/^_+|_+$/g, "").slice(0, 48) || "image";
+		const extensionMatch = url.pathname.match(/\.(png|jpe?g|gif|webp|bmp|svg)$/i);
+		return extensionMatch ? `${safeName}.${extensionMatch[1].toLowerCase()}` : `${safeName}.jpg`;
+	} catch {
+		const safeName = fallbackName.replace(/[^a-z0-9-_]+/gi, "_").replace(/^_+|_+$/g, "").slice(0, 48) || "image";
+		return `${safeName}.jpg`;
+	}
+}
+
+function pathBaseName(pathname) {
+	const parts = String(pathname || "").split("/").filter(Boolean);
+	return parts.length ? parts[parts.length - 1].split(/[?#]/)[0] : "";
+}
+
+function bindPreviewImages(container, title) {
+	if (!container) return;
+	const slideshowContainers = Array.from(container.querySelectorAll(".slideshow"));
+	const standaloneImages = Array.from(container.querySelectorAll(":scope > img.details-image, .detail-group img.details-image, img.details-image"));
+
+	slideshowContainers.forEach((slideshow) => {
+		const images = Array.from(slideshow.querySelectorAll("img")).map((img) => img.src).filter(Boolean);
+		const slides = Array.from(slideshow.querySelectorAll("img"));
+		slides.forEach((img, index) => {
+			img.classList.add("is-zoomable");
+			img.style.cursor = "zoom-in";
+			img.addEventListener("click", (event) => {
+				event.preventDefault();
+				event.stopPropagation();
+				showImageModal(images, index, title || img.alt || "Image Preview");
+			});
+		});
+	});
+
+	standaloneImages.forEach((img) => {
+		if (img.closest(".slideshow")) return;
+		img.classList.add("is-zoomable");
+		img.style.cursor = "zoom-in";
+		img.addEventListener("click", (event) => {
+			event.preventDefault();
+			event.stopPropagation();
+			showImageModal([img.src], 0, title || img.alt || "Image Preview");
+		});
+	});
+}
+
+function startImagePan(event) {
+	if (!elements.imageModalStage) return;
+	state.imageViewer.dragging = true;
+	state.imageViewer.dragStartX = event.clientX;
+	state.imageViewer.dragStartY = event.clientY;
+	state.imageViewer.panStartX = state.imageViewer.x;
+	state.imageViewer.panStartY = state.imageViewer.y;
+	elements.imageModalStage.classList.add("is-panning");
+	elements.imageModalStage.setPointerCapture?.(event.pointerId);
+}
+
+function moveImagePan(event) {
+	if (!state.imageViewer.dragging) return;
+	const deltaX = event.clientX - state.imageViewer.dragStartX;
+	const deltaY = event.clientY - state.imageViewer.dragStartY;
+	state.imageViewer.x = state.imageViewer.panStartX + deltaX;
+	state.imageViewer.y = state.imageViewer.panStartY + deltaY;
+	renderImageModal();
+}
+
+function endImagePan(event) {
+	if (!state.imageViewer.dragging) return;
+	state.imageViewer.dragging = false;
+	elements.imageModalStage?.classList.remove("is-panning");
+	elements.imageModalStage?.releasePointerCapture?.(event.pointerId);
+}
+
 function buildDetailsMarkup(entry) {
 	if (!entry) {
 		return '<p class="empty-state">Select a feed item or product to inspect the metadata here.</p>';
@@ -167,12 +359,14 @@ function syncDetailsMarkup(entry, sourceLabel) {
 	}
 	if (elements.detailsContent) {
 		elements.detailsContent.innerHTML = markup;
+		bindPreviewImages(elements.detailsContent, entry?.title || "Image Preview");
 	}
 	if (elements.detailsModalSource) {
 		elements.detailsModalSource.textContent = sourceLabel || "Nothing selected";
 	}
 	if (elements.detailsModalContent) {
 		elements.detailsModalContent.innerHTML = markup;
+		bindPreviewImages(elements.detailsModalContent, entry?.title || "Image Preview");
 	}
 	if (entry) {
 		const containers = [elements.detailsContent, elements.detailsModalContent].filter(Boolean);
@@ -287,6 +481,11 @@ function setPage(page) {
 		detailsPanel.classList.toggle("is-hidden", page !== "feed");
 	}
 
+	// Show floating filter button only on feed page
+	if (elements.floatingFilterBtn) {
+		elements.floatingFilterBtn.style.display = page === "feed" ? "block" : "none";
+	}
+
 	const config = {
 		feed: {
 			eyebrow: "Feed Browser",
@@ -350,6 +549,8 @@ function renderFeedResults(entries) {
 			loadDetailsFromFeedEntry(entry);
 		});
 	});
+
+	bindPreviewImages(elements.feedResults, "Feed Image Preview");
 }
 
 function renderDetailsFromFeedEntry(entry) {
@@ -444,8 +645,22 @@ function renderProductInDetailsPanel(entry, productData, sourceLabel) {
 			<p class="detail-list">${safeText(p.product_id)}</p>
 	`;
 
-	if (p.product_image) {
-		detailsHtml += `<img class="details-image" src="${p.product_image}" alt="${safeText(p.product_name)}">`;
+	if (p.product_image || p.product_image_samples.length) {
+		
+		const arrayofImages = [];
+		if (p.product_image) arrayofImages.push(p.product_image);
+		if (p.product_image_samples.length) arrayofImages.push(...p.product_image_samples);
+		console.log("my array of images", arrayofImages);
+
+		if (arrayofImages.length === 1) {
+			detailsHtml += `<img class="details-image" src="${arrayofImages[0]}" alt="${safeText(p.product_name)}">`;
+		} else if (arrayofImages.length > 1) {
+			detailsHtml += `
+				<div class="slideshow">
+					${arrayofImages.map((img) => `<img class="details-image" src="${img}" alt="${safeText(p.product_name)}">`).join("")}
+				</div>
+			`;
+		}
 	}
 
 	const genre_chips = (p.genres && p.genres.length) ? p.genres : [];
@@ -506,10 +721,15 @@ function renderProductInDetailsPanel(entry, productData, sourceLabel) {
 
 	if (elements.detailsContent) {
 		elements.detailsContent.innerHTML = detailsHtml;
+		bindPreviewImages(elements.detailsContent, p.product_name || "Image Preview");
 	}
 	if (elements.detailsModalContent) {
 		elements.detailsModalContent.innerHTML = detailsHtml;
+		bindPreviewImages(elements.detailsModalContent, p.product_name || "Image Preview");
 	}
+
+	// initialize any slideshows inside the details containers
+	[elements.detailsContent, elements.detailsModalContent].filter(Boolean).forEach((container) => initSlideshow(container));
 
 	// Attach link handlers for any data-open-link anchors in details containers
 	const detailContainers = [elements.detailsContent, elements.detailsModalContent].filter(Boolean);
@@ -521,6 +741,59 @@ function renderProductInDetailsPanel(entry, productData, sourceLabel) {
 			});
 		});
 	});
+}
+
+// Simple slideshow initializer for a container element
+function initSlideshow(container) {
+	if (!container) return;
+	const slideshow = container.querySelector('.slideshow');
+	if (!slideshow) return;
+
+	const imgs = Array.from(slideshow.querySelectorAll('img'));
+	if (!imgs.length) return;
+
+	// add controls if not present
+	if (!slideshow.querySelector('.slideshow-controls')) {
+		const controls = document.createElement('div');
+		controls.className = 'slideshow-controls';
+		const prev = document.createElement('button');
+		prev.type = 'button'; prev.className = 'slide-prev'; prev.textContent = '◀';
+		const next = document.createElement('button');
+		next.type = 'button'; next.className = 'slide-next'; next.textContent = '▶';
+		controls.appendChild(prev);
+		controls.appendChild(next);
+		slideshow.appendChild(controls);
+
+		const indicatorRow = document.createElement('div');
+		indicatorRow.className = 'indicator-row';
+		imgs.forEach(() => {
+			const ind = document.createElement('div');
+			ind.className = 'indicator';
+			indicatorRow.appendChild(ind);
+		});
+		slideshow.appendChild(indicatorRow);
+	}
+
+	let current = 0;
+	const indicators = Array.from(slideshow.querySelectorAll('.indicator'));
+
+	function show(index) {
+		index = (index + imgs.length) % imgs.length;
+		imgs.forEach((img, i) => img.classList.toggle('is-active', i === index));
+		indicators.forEach((ind, i) => ind.classList.toggle('is-active', i === index));
+		current = index;
+	}
+
+	show(0);
+
+	const btnPrev = slideshow.querySelector('.slide-prev');
+	const btnNext = slideshow.querySelector('.slide-next');
+
+	if (btnPrev) btnPrev.addEventListener('click', () => show(current - 1));
+	if (btnNext) btnNext.addEventListener('click', () => show(current + 1));
+
+	// allow clicking indicators to jump
+	indicators.forEach((ind, i) => ind.addEventListener('click', () => show(i)));
 }
 
 // Normalize product data from different API sources (FANZA vs DLSite)
@@ -576,8 +849,20 @@ function renderProductInSearchResult(productData, sourceLabel) {
 		summaryRows.push(`<div class="product-card"><div class="product-title">${safeText(p.product_name)}</div></div>`);
 	}
 
-	if (p.product_image) {
-		summaryRows.push(`<img class="product-image" src="${p.product_image}" alt="${safeText(p.product_name)}">`);
+	if (p.product_image || p.product_image_samples.length) {
+		const productImages = [];
+		if (p.product_image) productImages.push(p.product_image);
+		if (p.product_image_samples.length) productImages.push(...p.product_image_samples);
+
+		if (productImages.length === 1) {
+			summaryRows.push(`<img class="product-image" src="${productImages[0]}" alt="${safeText(p.product_name)}">`);
+		} else if (productImages.length > 1) {
+			summaryRows.push(`
+				<div class="slideshow">
+					${productImages.map((img) => `<img class="product-image" src="${img}" alt="${safeText(p.product_name)}">`).join("")}
+				</div>
+			`);
+		}
 	}
 
 	const genre_chips = (p.genres && p.genres.length) ? p.genres : [];
@@ -631,6 +916,8 @@ function renderProductInSearchResult(productData, sourceLabel) {
 	}
 
 	elements.productResult.innerHTML = summaryRows.join("");
+	initSlideshow(elements.productResult);
+	bindPreviewImages(elements.productResult, p.product_name || "Image Preview");
 
 	// Attach link handlers
 	elements.productResult.querySelectorAll("[data-open-link]").forEach((link) => {
@@ -773,8 +1060,8 @@ async function loadMore() {
 // Note: This function is a copy from the Backend Erovoice Handler for fast access
 // in the renderer without needing to round-trip through IPC for parsing feed content.
 function parseFeedContent(contentHtml) {
-	console.log("Parsing feed content HTML:", contentHtml);
-		const metadata = {
+	
+	const metadata = {
 		image: null,
 		circle: null,
 		release: null,
@@ -1059,6 +1346,83 @@ function bindEvents() {
 	if (elements.detailsModalOverlay) {
 		elements.detailsModalOverlay.addEventListener("click", closeDetailsModal);
 	}
+
+	if (elements.imageModalCloseBtn) {
+		elements.imageModalCloseBtn.addEventListener("click", closeImageModal);
+	}
+
+	if (elements.imageModalOverlay) {
+		elements.imageModalOverlay.addEventListener("click", closeImageModal);
+	}
+
+	if (elements.imageModalPrevBtn) {
+		elements.imageModalPrevBtn.addEventListener("click", () => shiftImage(-1));
+	}
+
+	if (elements.imageModalNextBtn) {
+		elements.imageModalNextBtn.addEventListener("click", () => shiftImage(1));
+	}
+
+	if (elements.imageModalZoomInBtn) {
+		elements.imageModalZoomInBtn.addEventListener("click", () => zoomImage(0.25));
+	}
+
+	if (elements.imageModalZoomOutBtn) {
+		elements.imageModalZoomOutBtn.addEventListener("click", () => zoomImage(-0.25));
+	}
+
+	if (elements.imageModalZoomResetBtn) {
+		elements.imageModalZoomResetBtn.addEventListener("click", () => {
+			state.imageViewer.scale = 1;
+			state.imageViewer.x = 0;
+			state.imageViewer.y = 0;
+			renderImageModal();
+		});
+	}
+
+	if (elements.imageModalImage) {
+		elements.imageModalImage.addEventListener("pointerdown", (event) => {
+			event.preventDefault();
+			startImagePan(event);
+		});
+	}
+
+	if (elements.imageModalStage) {
+		elements.imageModalStage.addEventListener("pointerdown", (event) => {
+			if (event.target === elements.imageModalStage && state.imageViewer.scale > 1) {
+				event.preventDefault();
+				startImagePan(event);
+			}
+		});
+		elements.imageModalStage.addEventListener("pointermove", moveImagePan);
+		elements.imageModalStage.addEventListener("pointerup", endImagePan);
+		elements.imageModalStage.addEventListener("pointercancel", endImagePan);
+		elements.imageModalStage.addEventListener("pointerleave", endImagePan);
+		elements.imageModalStage.addEventListener("wheel", (event) => {
+			if (state.imageViewer.scale <= 1) return;
+			event.preventDefault();
+			const zoomStep = event.deltaY > 0 ? -0.15 : 0.15;
+			zoomImage(zoomStep);
+		}, { passive: false });
+	}
+
+	if (elements.imageModalDownloadBtn) {
+		elements.imageModalDownloadBtn.addEventListener("click", downloadCurrentImage);
+	}
+
+	document.addEventListener("keydown", (event) => {
+		if (event.key === "Escape") {
+			closeImageModal();
+			closeDetailsModal();
+			closeFilterModal();
+		}
+		if (event.key === "ArrowLeft" && elements.imageModal && elements.imageModal.style.display !== "none") {
+			shiftImage(-1);
+		}
+		if (event.key === "ArrowRight" && elements.imageModal && elements.imageModal.style.display !== "none") {
+			shiftImage(1);
+		}
+	});
 	
 	if (elements.modalCloseBtn) {
 		elements.modalCloseBtn.addEventListener("click", closeFilterModal);
