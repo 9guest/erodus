@@ -12,6 +12,22 @@ const { autoUpdater } = updaterPkg;
 let updateListenersRegistered = false;
 let lastUpdateInfo = null;
 
+function compareVersions(leftVersion, rightVersion) {
+    const leftParts = String(leftVersion || "0").split(".").map((part) => Number.parseInt(part, 10) || 0);
+    const rightParts = String(rightVersion || "0").split(".").map((part) => Number.parseInt(part, 10) || 0);
+    const length = Math.max(leftParts.length, rightParts.length);
+
+    for (let index = 0; index < length; index += 1) {
+        const left = leftParts[index] || 0;
+        const right = rightParts[index] || 0;
+
+        if (left > right) return 1;
+        if (left < right) return -1;
+    }
+
+    return 0;
+}
+
 function sendUpdateStatus(context, payload) {
     const targetWindow = context?.mainWindow;
     if (!targetWindow || targetWindow.isDestroyed()) return;
@@ -29,11 +45,24 @@ function registerUpdateListeners(context) {
     });
 
     autoUpdater.on('update-available', (info) => {
+        const currentVersion = app.getVersion();
+        const latestVersion = info?.version || null;
+
+        if (!latestVersion || compareVersions(latestVersion, currentVersion) <= 0) {
+            lastUpdateInfo = null;
+            sendUpdateStatus(context, {
+                state: 'not-available',
+                version: currentVersion,
+                message: 'You are using the latest version.',
+            });
+            return;
+        }
+
         lastUpdateInfo = info;
         sendUpdateStatus(context, {
             state: 'available',
-            version: info?.version || null,
-            message: `Update available: ${info?.version || 'new version'}`,
+            version: latestVersion,
+            message: `Update available: ${latestVersion}`,
         });
     });
 
@@ -94,8 +123,9 @@ export function registerIpcHandlers(ipcMain, context) {
         try {
             const result = await autoUpdater.checkForUpdates();
             const updateInfo = result?.updateInfo || null;
+            const currentVersion = app.getVersion();
 
-            if (updateInfo) {
+            if (updateInfo && compareVersions(updateInfo.version, currentVersion) > 0) {
                 lastUpdateInfo = updateInfo;
                 return {
                     state: 'available',
@@ -104,6 +134,8 @@ export function registerIpcHandlers(ipcMain, context) {
                     isPackaged: true,
                 };
             }
+
+            lastUpdateInfo = null;
 
             return {
                 state: 'not-available',
@@ -130,6 +162,15 @@ export function registerIpcHandlers(ipcMain, context) {
         }
 
         try {
+            const currentVersion = app.getVersion();
+            if (!lastUpdateInfo || compareVersions(lastUpdateInfo.version, currentVersion) <= 0) {
+                return {
+                    state: 'not-available',
+                    message: 'Check for updates first. No newer version is currently available.',
+                    isPackaged: true,
+                };
+            }
+
             await autoUpdater.downloadUpdate();
             return {
                 state: 'downloading',

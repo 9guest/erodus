@@ -1,6 +1,6 @@
-# Erodus - Erovoice Desktop Client
+# EroDUS - Erovoice Desktop Client
 
-A cross-platform desktop application for downloading content from erovoice.us and checking the items in 
+EroDUS is the desktop version of erovoice.desktop.us, a cross-platform application for downloading content from erovoice.us and Checking the DLsite / Fanza Product Info with product ID.
 
 ## Features
 
