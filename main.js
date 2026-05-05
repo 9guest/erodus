@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-import { app, BrowserWindow, dialog, shell, ipcMain } from 'electron'
+import { app, BrowserWindow, dialog, shell, ipcMain, Menu } from 'electron'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { registerIpcHandlers } from './src/modules/app-ipc-handler.js';
@@ -34,7 +34,7 @@ async function createWindow () {
       nodeIntegration: false,
       contextIsolation: true,
     },
-    icon: path.join(__dirname, 'build', 'icon.ico')
+    icon: path.join(__dirname, 'build', 'icon_128x128.ico')
   })
 
   // and load the index.html of the app.
@@ -64,6 +64,7 @@ if (!gotTheLock) {
   app.whenReady().then(async () => {
     
     createWindow()
+    Menu.setApplicationMenu(null)
     registerIpcHandlers(ipcMain, { mainWindow });
 
     app.on('activate', function () {

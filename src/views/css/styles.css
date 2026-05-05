@@ -107,6 +107,14 @@ input:focus, textarea:focus {
   font-size: 1.15rem;
   box-shadow: var(--shadow);
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.brand-mark img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
 }
 
 .brand-title {
@@ -355,6 +363,99 @@ input:focus, textarea:focus {
 .preview-swatch.accent { background: var(--accent); }
 .preview-swatch.surface { background: var(--surface-strong); }
 .preview-swatch.border { background: var(--border); }
+
+.about-hero {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.18), rgba(101, 214, 194, 0.08));
+}
+
+.about-brand-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.about-app-icon-wrap {
+  width: 132px;
+  height: 132px;
+  border-radius: 30px;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  flex-shrink: 0;
+}
+
+.about-app-icon {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  border-radius: 22px;
+}
+
+.about-description {
+  margin: 0 0 1rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.about-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.about-meta-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  background: rgba(255, 255, 255, 0.03);
+  display: grid;
+  gap: 0.25rem;
+}
+
+.about-meta-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.about-update-stack {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.about-note {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.update-progress {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.update-progress-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.update-progress-bar > span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  transition: width 0.2s ease;
+}
 
 .product-result { display: grid; gap: 0.75rem; }
 

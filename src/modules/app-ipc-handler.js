@@ -1,4 +1,5 @@
-import {dialog, shell, BrowserWindow} from "electron";
+import { app, dialog, shell, BrowserWindow } from "electron";
+import updaterPkg from "electron-updater";
 import log from "./app-color-log.js";
 import * as erovoiceHandler from "./mod-erovoice-handler.js";
 import * as dlsiteHandler from "./mod-dlsite-handler.js";
@@ -6,7 +7,162 @@ import * as fanzaHandler from "./mod-fanza-handler.js";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
 
+const { autoUpdater } = updaterPkg;
+
+let updateListenersRegistered = false;
+let lastUpdateInfo = null;
+
+function sendUpdateStatus(context, payload) {
+    const targetWindow = context?.mainWindow;
+    if (!targetWindow || targetWindow.isDestroyed()) return;
+    targetWindow.webContents.send('update-status', payload);
+}
+
+function registerUpdateListeners(context) {
+    if (updateListenersRegistered) return;
+
+    autoUpdater.autoDownload = false;
+    autoUpdater.autoInstallOnAppQuit = true;
+
+    autoUpdater.on('checking-for-update', () => {
+        sendUpdateStatus(context, { state: 'checking', message: 'Checking for updates...' });
+    });
+
+    autoUpdater.on('update-available', (info) => {
+        lastUpdateInfo = info;
+        sendUpdateStatus(context, {
+            state: 'available',
+            version: info?.version || null,
+            message: `Update available: ${info?.version || 'new version'}`,
+        });
+    });
+
+    autoUpdater.on('update-not-available', () => {
+        lastUpdateInfo = null;
+        sendUpdateStatus(context, { state: 'not-available', message: 'You are using the latest version.' });
+    });
+
+    autoUpdater.on('download-progress', (progress) => {
+        sendUpdateStatus(context, {
+            state: 'downloading',
+            percent: progress?.percent || 0,
+            message: `Downloading update... ${Math.round(progress?.percent || 0)}%`,
+        });
+    });
+
+    autoUpdater.on('update-downloaded', (info) => {
+        lastUpdateInfo = info;
+        sendUpdateStatus(context, {
+            state: 'downloaded',
+            version: info?.version || null,
+            message: `Update ${info?.version || ''} is ready to install.`,
+        });
+    });
+
+    autoUpdater.on('error', (error) => {
+        sendUpdateStatus(context, {
+            state: 'error',
+            message: error?.message || String(error),
+        });
+    });
+
+    updateListenersRegistered = true;
+}
+
 export function registerIpcHandlers(ipcMain, context) {
+    registerUpdateListeners(context);
+
+    ipcMain.handle('get-app-info', async () => {
+        return {
+            name: app.getName(),
+            version: app.getVersion(),
+            platform: process.platform,
+            arch: process.arch,
+            isPackaged: app.isPackaged,
+        };
+    });
+
+    ipcMain.handle('check-for-updates', async () => {
+        if (!app.isPackaged) {
+            return {
+                state: 'unavailable',
+                message: 'Update checks are available in packaged builds only.',
+                isPackaged: false,
+            };
+        }
+
+        try {
+            const result = await autoUpdater.checkForUpdates();
+            const updateInfo = result?.updateInfo || null;
+
+            if (updateInfo) {
+                lastUpdateInfo = updateInfo;
+                return {
+                    state: 'available',
+                    version: updateInfo.version || null,
+                    message: `Update available: ${updateInfo.version || 'new version'}`,
+                    isPackaged: true,
+                };
+            }
+
+            return {
+                state: 'not-available',
+                message: 'You are using the latest version.',
+                isPackaged: true,
+            };
+        } catch (error) {
+            log.error('Error checking for updates:', error);
+            return {
+                state: 'error',
+                message: error?.message || String(error),
+                isPackaged: true,
+            };
+        }
+    });
+
+    ipcMain.handle('download-update', async () => {
+        if (!app.isPackaged) {
+            return {
+                state: 'unavailable',
+                message: 'Update downloads are available in packaged builds only.',
+                isPackaged: false,
+            };
+        }
+
+        try {
+            await autoUpdater.downloadUpdate();
+            return {
+                state: 'downloading',
+                message: 'Downloading update in the background.',
+                version: lastUpdateInfo?.version || null,
+                isPackaged: true,
+            };
+        } catch (error) {
+            log.error('Error downloading update:', error);
+            return {
+                state: 'error',
+                message: error?.message || String(error),
+                isPackaged: true,
+            };
+        }
+    });
+
+    ipcMain.handle('install-update', async () => {
+        if (!app.isPackaged) {
+            return {
+                state: 'unavailable',
+                message: 'Update installation is available in packaged builds only.',
+                isPackaged: false,
+            };
+        }
+
+        autoUpdater.quitAndInstall(false, true);
+        return {
+            state: 'installing',
+            message: 'Installing update and restarting the app.',
+            isPackaged: true,
+        };
+    });
 
     // Erovoice search
     ipcMain.handle('search-erovoice', async (event, filters) => {

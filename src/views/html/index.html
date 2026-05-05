@@ -13,7 +13,7 @@
     <div class="app-shell">
       <aside class="sidebar">
         <div class="brand">
-          <div class="brand-mark">E</div>
+          <div class="brand-mark"><img src="../../assets/icon.png" alt="EroDUS Logo"></div>
           <div>
             <div class="brand-title">EroDUS</div>
             <div class="brand-subtitle">desktop browser</div>
@@ -24,6 +24,7 @@
           <button class="nav-item is-active" data-page="feed" type="button">Erovoice Feed</button>
           <button class="nav-item" data-page="product" type="button">Product Search</button>
           <button class="nav-item" data-page="queue" type="button">Download Queue</button>
+          <button class="nav-item" data-page="about" type="button">About</button>
           <button class="nav-item" data-page="settings" type="button">Settings</button>
         </nav>
       </aside>
@@ -118,10 +119,59 @@
               </div>
             </section>
 
+            <section class="page-view" data-page-view="about">
+              <div class="panel-card about-hero">
+                <div class="about-brand-row">
+                  <div class="about-app-icon-wrap">
+                    <img class="about-app-icon" src="../../assets/icon.png" alt="EroDUS app icon">
+                  </div>
+                  <div>
+                    <p class="eyebrow" style="margin: 0 0 0.25rem;">Application</p>
+                    <h2 style="margin: 0;">About EroDUS</h2>
+                  </div>
+                </div>
+                <div class="panel-header">
+                  <span class="muted" id="about-build-tag">Loading...</span>
+                </div>
+                <p class="about-description">
+                  EroDUS is a desktop client for browsing erovoice.us content and searching products (Fanza / DLsite).
+                </p>
+                <div class="about-meta-grid">
+                  <div class="about-meta-item">
+                    <span class="about-meta-label">Version</span>
+                    <strong id="about-app-version">--</strong>
+                  </div>
+                  <div class="about-meta-item">
+                    <span class="about-meta-label">Platform</span>
+                    <strong id="about-app-platform">--</strong>
+                  </div>
+                  <div class="about-meta-item">
+                    <span class="about-meta-label">Architecture</span>
+                    <strong id="about-app-arch">--</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel-card">
+                <div class="panel-header">
+                  <h2>Updates</h2>
+                  <span class="muted" id="update-status">Idle</span>
+                </div>
+                <div class="about-update-stack">
+                  <p class="about-note" id="update-note">Check for a newer release from the app's update feed.</p>
+                  <div class="form-actions" style="margin-bottom: 1rem;">
+                    <button class="primary-button" id="check-updates-btn" type="button">Check for Updates</button>
+                    <button class="ghost-button" id="download-update-btn" type="button" disabled style="display:none;">Download Update</button>
+                    <button class="ghost-button" id="install-update-btn" type="button" disabled style="display:none;">Install Now</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
             <section class="page-view" data-page-view="queue">
               <div class="panel-card">
                 <div class="panel-header">
-                  <h2></h2>
+                  <h2>&nbsp;</h2>
                   <span class="muted" id="queue-or-history-status">Empty</span>
                 </div>
 
@@ -136,7 +186,7 @@
                   <div id="queue-content" style="min-height: 200px;">
                     <p class="empty-state">No items in queue. Add download links from the feed or product search.</p>
                   </div>
-                  <div class="form-actions" style="margin-top: 1rem;">
+                  <div class="form-actions" style="margin-top: 1rem; margin-bottom: 1rem;">
                     <button class="primary-button" id="download-all-btn" type="button" disabled>Download All</button>
                     <button class="ghost-button" id="clear-queue-btn" type="button" disabled>Clear Queue</button>
                   </div>
@@ -147,10 +197,11 @@
                   <div id="history-content" style="min-height: 200px;">
                     <p class="empty-state">Downloaded items will appear here.</p>
                   </div>
-                  <div class="form-actions" style="margin-top: 1rem;">
+                  <div class="form-actions" style="margin-top: 1rem; margin-bottom: 1rem;">
                     <button class="ghost-button" id="clear-history-btn" type="button" disabled>Clear History</button>
                   </div>
                 </div>
+
               </div>
             </section>
           </div>

@@ -15,6 +15,15 @@ const erodusAPI = {
   openExternalLink: (url) => ipcRenderer.invoke('open-external-link', url),
   showMessageBox: (options) => ipcRenderer.invoke('show-message-box', options),
   downloadImage: (payload) => ipcRenderer.invoke('download-image', payload),
+  getAppInfo: () => ipcRenderer.invoke('get-app-info'),
+  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  downloadUpdate: () => ipcRenderer.invoke('download-update'),
+  installUpdate: () => ipcRenderer.invoke('install-update'),
+  onUpdateStatus: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on('update-status', listener);
+    return () => ipcRenderer.removeListener('update-status', listener);
+  },
 };
 
 contextBridge.exposeInMainWorld('erodusAPI', erodusAPI);

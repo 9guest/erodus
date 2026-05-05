@@ -49,6 +49,18 @@ const state = {
 	selectedProduct: null,
 	categories: [],
 	themeName: "dark",
+	appInfo: {
+		name: "EroDUS",
+		version: "--",
+		platform: "--",
+		arch: "--",
+		isPackaged: false,
+	},
+	updateStatus: {
+		state: "idle",
+		message: "Idle",
+		percent: 0,
+	},
 	queue: [],
 	queueHistory: [],
 	imageViewer: {
@@ -111,6 +123,15 @@ const elements = {
 	productSearchInput: $("#product-search-input"),
 	productStatus: $("#product-status"),
 	productResult: $("#product-result"),
+	aboutBuildTag: $("#about-build-tag"),
+	aboutAppVersion: $("#about-app-version"),
+	aboutAppPlatform: $("#about-app-platform"),
+	aboutAppArch: $("#about-app-arch"),
+	updateStatus: $("#update-status"),
+	updateNote: $("#update-note"),
+	checkUpdatesBtn: $("#check-updates-btn"),
+	downloadUpdateBtn: $("#download-update-btn"),
+	installUpdateBtn: $("#install-update-btn"),
 	themeButtons: Array.from(document.querySelectorAll(".theme-button")),
 	themeJson: $("#theme-json"),
 	applyThemeJson: $("#apply-theme-json"),
@@ -547,6 +568,100 @@ function loadHistory() {
 	}
 }
 
+function applyUpdateState(updateState = {}) {
+	state.updateStatus = {
+		...state.updateStatus,
+		...updateState,
+	};
+
+	const message = state.updateStatus.message || "Idle";
+	if (elements.updateStatus) {
+		elements.updateStatus.textContent = message;
+	}
+	if (elements.updateNote) {
+		elements.updateNote.textContent = message;
+	}
+
+	const showActionButtons = state.appInfo.isPackaged;
+	if (elements.downloadUpdateBtn) {
+		elements.downloadUpdateBtn.style.display = state.updateStatus.state === "available" ? "inline-flex" : "none";
+		elements.downloadUpdateBtn.disabled = state.updateStatus.state !== "available";
+	}
+	if (elements.installUpdateBtn) {
+		elements.installUpdateBtn.style.display = state.updateStatus.state === "downloaded" ? "inline-flex" : "none";
+		elements.installUpdateBtn.disabled = state.updateStatus.state !== "downloaded";
+	}
+	if (elements.checkUpdatesBtn) {
+		elements.checkUpdatesBtn.disabled = !showActionButtons && state.updateStatus.state !== "error";
+		elements.checkUpdatesBtn.textContent = showActionButtons ? "Check for Updates" : "Check unavailable in dev";
+	}
+	if (elements.aboutBuildTag) {
+		elements.aboutBuildTag.textContent = state.appInfo.isPackaged ? "Packaged build" : "Development build";
+	}
+	if (elements.aboutAppVersion) elements.aboutAppVersion.textContent = state.appInfo.version || "--";
+	if (elements.aboutAppPlatform) elements.aboutAppPlatform.textContent = state.appInfo.platform || "--";
+	if (elements.aboutAppArch) elements.aboutAppArch.textContent = state.appInfo.arch || "--";
+}
+
+async function loadAppInfo() {
+	try {
+		const appInfo = await window.erodusAPI.getAppInfo();
+		state.appInfo = {
+			...state.appInfo,
+			...appInfo,
+		};
+		applyUpdateState();
+	} catch (error) {
+		applyUpdateState({ state: "error", message: error.message || String(error) });
+	}
+}
+
+async function checkForUpdates() {
+	applyUpdateState({ state: "checking", message: "Checking for updates...", percent: 0 });
+	try {
+		const result = await window.erodusAPI.checkForUpdates();
+		applyUpdateState({
+			state: result?.state || "idle",
+			message: result?.message || "Idle",
+			percent: 0,
+		});
+		if (result?.state === "available") {
+			showToast({ type: "info", title: "Update available", message: result.message || "A new version is available." });
+		}
+		if (result?.state === "not-available") {
+			showToast({ type: "success", title: "Up to date", message: result.message || "You are using the latest version." });
+		}
+	} catch (error) {
+		applyUpdateState({ state: "error", message: error.message || String(error), percent: 0 });
+		showToast({ type: "error", title: "Update check failed", message: error.message || String(error) });
+	}
+}
+
+async function downloadUpdate() {
+	applyUpdateState({ state: "downloading", message: "Downloading update...", percent: 0 });
+	try {
+		const result = await window.erodusAPI.downloadUpdate();
+		applyUpdateState({
+			state: result?.state || "downloading",
+			message: result?.message || "Downloading update...",
+			percent: 0,
+		});
+	} catch (error) {
+		applyUpdateState({ state: "error", message: error.message || String(error), percent: 0 });
+		showToast({ type: "error", title: "Download failed", message: error.message || String(error) });
+	}
+}
+
+async function installUpdate() {
+	try {
+		await window.erodusAPI.installUpdate();
+		applyUpdateState({ state: "installing", message: "Installing update...", percent: 0 });
+	} catch (error) {
+		applyUpdateState({ state: "error", message: error.message || String(error), percent: 0 });
+		showToast({ type: "error", title: "Install failed", message: error.message || String(error) });
+	}
+}
+
 function setPage(page) {
 	state.page = page;
 	elements.navItems.forEach((item) => item.classList.toggle("is-active", item.dataset.page === page));
@@ -594,6 +709,12 @@ function setPage(page) {
 			description: "Switch between dark and light themes or paste/import a JSON theme config.",
 			actions: '',
 		},
+		about: {
+			eyebrow: "About",
+			title: "About EroDUS",
+			description: "See the app version and check for updates.",
+			actions: '<button class="ghost-button" id="about-check-shortcut" type="button">Check for Updates</button>',
+		},
 	}[page];
 
 	elements.pageEyebrow.textContent = config.eyebrow;
@@ -604,6 +725,11 @@ function setPage(page) {
 	const reloadButton = document.getElementById("reload-feed-shortcut");
 	if (reloadButton) {
 		reloadButton.addEventListener("click", () => loadFeed());
+	}
+
+	const aboutCheckButton = document.getElementById("about-check-shortcut");
+	if (aboutCheckButton) {
+		aboutCheckButton.addEventListener("click", () => checkForUpdates());
 	}
 }
 
@@ -1811,6 +1937,24 @@ function bindEvents() {
 		elements.clearHistoryBtn.addEventListener("click", clearHistory);
 	}
 
+	if (elements.checkUpdatesBtn) {
+		elements.checkUpdatesBtn.addEventListener("click", checkForUpdates);
+	}
+
+	if (elements.downloadUpdateBtn) {
+		elements.downloadUpdateBtn.addEventListener("click", downloadUpdate);
+	}
+
+	if (elements.installUpdateBtn) {
+		elements.installUpdateBtn.addEventListener("click", installUpdate);
+	}
+
+	if (window.erodusAPI.onUpdateStatus) {
+		window.erodusAPI.onUpdateStatus((payload) => {
+			applyUpdateState(payload || {});
+		});
+	}
+
 	// Queue tab switching
 	elements.queueTabBtns.forEach((btn) => {
 		btn.addEventListener("click", () => {
@@ -1837,6 +1981,8 @@ function initializeThemeEditor() {
 
 window.addEventListener("DOMContentLoaded", async () => {
 	initializeThemeEditor();
+	applyUpdateState();
+	await loadAppInfo();
 	loadQueue();
 	loadHistory();
 	bindEvents();
