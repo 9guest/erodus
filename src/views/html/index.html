@@ -23,6 +23,7 @@
         <nav class="nav-stack" aria-label="Primary">
           <button class="nav-item is-active" data-page="feed" type="button">Erovoice Feed</button>
           <button class="nav-item" data-page="product" type="button">Product Search</button>
+          <button class="nav-item" data-page="queue" type="button">Download Queue</button>
           <button class="nav-item" data-page="settings" type="button">Settings</button>
         </nav>
       </aside>
@@ -90,12 +91,12 @@
                   <button class="theme-button" data-theme-choice="custom" type="button">Custom</button>
                 </div>
 
-                <div class="theme-editor">
+                <div class="theme-editor" style="margin-top: 10px;">
                   <label>
                     <span>Custom theme JSON</span>
                     <textarea id="theme-json" spellcheck="false" rows="12" placeholder='{"name":"Ocean","colors":{"bg":"#0c1220","surface":"#121a2b","text":"#e8eefc","muted":"#94a3b8","accent":"#4fd1c5"}}'></textarea>
                   </label>
-                  <div class="form-actions">
+                  <div class="form-actions" style="margin-top: 1rem;">
                     <button class="primary-button" id="apply-theme-json" type="button">Apply JSON Theme</button>
                     <input id="theme-json-file" type="file" accept="application/json" hidden>
                     <button class="ghost-button" id="import-theme-btn" type="button">Import JSON</button>
@@ -112,7 +113,43 @@
                   <div class="preview-swatch accent"></div>
                   <div class="preview-swatch surface"></div>
                   <div class="preview-swatch border"></div>
-                  <div class="preview-note">All colors are driven by CSS variables, so custom themes can be added later without changing the layout.</div>
+                  <div class="preview-note" style="margin-bottom: 1rem;">All colors are driven by CSS variables, so custom themes can be added later without changing the layout.</div>
+                </div>
+              </div>
+            </section>
+
+            <section class="page-view" data-page-view="queue">
+              <div class="panel-card">
+                <div class="panel-header">
+                  <h2></h2>
+                  <span class="muted" id="queue-or-history-status">Empty</span>
+                </div>
+
+                <!-- Tab Navigation -->
+                <div class="queue-tabs" style="display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 1rem;">
+                  <button class="queue-tab-btn is-active" data-tab="queue" type="button" style="flex: 1; padding: 0.75rem; background: none; border: none; border-bottom: 2px solid transparent; color: var(--text); cursor: pointer; font-weight: 500; transition: all 0.2s ease;">Queue</button>
+                  <button class="queue-tab-btn" data-tab="history" type="button" style="flex: 1; padding: 0.75rem; background: none; border: none; border-bottom: 2px solid transparent; color: var(--muted); cursor: pointer; font-weight: 500; transition: all 0.2s ease;">History</button>
+                </div>
+
+                <!-- Queue Tab Content -->
+                <div class="queue-tab-content is-active" data-tab-content="queue">
+                  <div id="queue-content" style="min-height: 200px;">
+                    <p class="empty-state">No items in queue. Add download links from the feed or product search.</p>
+                  </div>
+                  <div class="form-actions" style="margin-top: 1rem;">
+                    <button class="primary-button" id="download-all-btn" type="button" disabled>Download All</button>
+                    <button class="ghost-button" id="clear-queue-btn" type="button" disabled>Clear Queue</button>
+                  </div>
+                </div>
+
+                <!-- History Tab Content -->
+                <div class="queue-tab-content" data-tab-content="history" style="display: none;">
+                  <div id="history-content" style="min-height: 200px;">
+                    <p class="empty-state">Downloaded items will appear here.</p>
+                  </div>
+                  <div class="form-actions" style="margin-top: 1rem;">
+                    <button class="ghost-button" id="clear-history-btn" type="button" disabled>Clear History</button>
+                  </div>
                 </div>
               </div>
             </section>
@@ -220,6 +257,8 @@
         <img id="image-modal-image" alt="Image preview">
       </div>
     </div>
+
+    <div class="toast-container" id="toast-container" aria-live="polite" aria-atomic="true"></div>
 
     <script src="../js/renderer.js"></script>
   </body>

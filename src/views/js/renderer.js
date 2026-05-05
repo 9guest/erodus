@@ -8,6 +8,8 @@
 
 const themeStorageKey = "erodus-theme";
 const customThemeStorageKey = "erodus-custom-theme";
+const queueStorageKey = "erodus-queue";
+const queueHistoryStorageKey = "erodus-queue-history";
 
 const defaultThemes = {
 	dark: {
@@ -47,6 +49,8 @@ const state = {
 	selectedProduct: null,
 	categories: [],
 	themeName: "dark",
+	queue: [],
+	queueHistory: [],
 	imageViewer: {
 		images: [],
 		index: 0,
@@ -129,6 +133,16 @@ const elements = {
 	refreshFeedBtnModal: $("#refresh-feed-btn-modal"),
 	feedLoadMoreContainer: $("#feed-load-more"),
 	feedLoadMoreBtn: $("#feed-load-more-btn"),
+	queueContent: $("#queue-content"),
+	queueStatus: $("#queue-or-history-status"),
+	downloadAllBtn: $("#download-all-btn"),
+	clearQueueBtn: $("#clear-queue-btn"),
+	historyContent: $("#history-content"),
+	historyStatus: $("#queue-or-history-status"),
+	clearHistoryBtn: $("#clear-history-btn"),
+	queueTabBtns: Array.from(document.querySelectorAll(".queue-tab-btn")),
+	queueTabContents: Array.from(document.querySelectorAll(".queue-tab-content")),
+	toastContainer: $("#toast-container"),
 };
 
 function isNarrowViewport() {
@@ -470,6 +484,69 @@ function applyCustomThemeFromJson(jsonText) {
 	return parsed;
 }
 
+function showToast({ title, message, type = "info", duration = 3500 }) {
+	const container = elements.toastContainer;
+	if (!container) return;
+
+	const toast = document.createElement("div");
+	toast.className = `toast toast--${type}`;
+	toast.innerHTML = `
+		<div class="toast__title">${safeText(title)}</div>
+		<div class="toast__message">${safeText(message)}</div>
+	`;
+
+	container.appendChild(toast);
+
+	const removeToast = () => {
+		if (!toast.isConnected) return;
+		toast.classList.add("is-leaving");
+		window.setTimeout(() => toast.remove(), 180);
+	};
+
+	window.setTimeout(removeToast, duration);
+	toast.addEventListener("click", removeToast);
+}
+
+function saveQueue() {
+	try {
+		localStorage.setItem(queueStorageKey, JSON.stringify(state.queue));
+	} catch (error) {
+		console.error("Failed to save queue:", error);
+	}
+}
+
+function loadQueue() {
+	try {
+		const stored = localStorage.getItem(queueStorageKey);
+		if (stored) {
+			state.queue = JSON.parse(stored);
+		}
+	} catch (error) {
+		console.error("Failed to load queue:", error);
+		state.queue = [];
+	}
+}
+
+function saveHistory() {
+	try {
+		localStorage.setItem(queueHistoryStorageKey, JSON.stringify(state.queueHistory));
+	} catch (error) {
+		console.error("Failed to save history:", error);
+	}
+}
+
+function loadHistory() {
+	try {
+		const stored = localStorage.getItem(queueHistoryStorageKey);
+		if (stored) {
+			state.queueHistory = JSON.parse(stored);
+		}
+	} catch (error) {
+		console.error("Failed to load history:", error);
+		state.queueHistory = [];
+	}
+}
+
 function setPage(page) {
 	state.page = page;
 	elements.navItems.forEach((item) => item.classList.toggle("is-active", item.dataset.page === page));
@@ -486,6 +563,12 @@ function setPage(page) {
 		elements.floatingFilterBtn.style.display = page === "feed" ? "block" : "none";
 	}
 
+	// Render queue and history when navigating to queue page
+	if (page === "queue") {
+		renderQueue();
+		renderHistory();
+	}
+
 	const config = {
 		feed: {
 			eyebrow: "Feed Browser",
@@ -497,6 +580,12 @@ function setPage(page) {
 			eyebrow: "Product Search",
 			title: "Search RJ, VJ, or cid",
 			description: "Query DLSite or FANZA product endpoints with one field and inspect the returned metadata.",
+			actions: '',
+		},
+		queue: {
+			eyebrow: "Download Manager",
+			title: "Download Queue",
+			description: "Manage your download queue and view download history.",
 			actions: '',
 		},
 		settings: {
@@ -698,7 +787,10 @@ function renderProductInDetailsPanel(entry, productData, sourceLabel) {
 			<div class="detail-group">
 				<div class="detail-label">Download Links</div>
 				<div class="detail-list" style="margin-top: 10px;">
-					${DownloadLinks.map((link) => `<div><a class="inline-link" href="#" data-open-link="${link.link}">${link.typename}</a></div>`).join("")}
+					${DownloadLinks.map((link) => `<div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem;">
+						<a class="inline-link" href="#" data-open-link="${link.link}">${link.typename}</a>
+						<button class="add-to-queue-btn ghost-button" data-product-name="${safeText(p.product_name)}" data-product-id="${safeText(p.product_id)}" data-link="${link.link}" data-typename="${link.typename}" type="button" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">+ Queue</button>
+					</div>`).join("")}
 				</div>
 			</div>
 		`;
@@ -738,6 +830,18 @@ function renderProductInDetailsPanel(entry, productData, sourceLabel) {
 			link.addEventListener("click", async (event) => {
 				event.preventDefault();
 				await window.erodusAPI.openExternalLink(link.dataset.openLink);
+			});
+		});
+
+		// Attach queue button handlers
+		container.querySelectorAll(".add-to-queue-btn").forEach((btn) => {
+			btn.addEventListener("click", (event) => {
+				event.preventDefault();
+				const productName = btn.dataset.productName;
+				const productId = btn.dataset.productId;
+				const link = btn.dataset.link;
+				const typename = btn.dataset.typename;
+				addToQueue(productName, productId, link, typename);
 			});
 		});
 	});
@@ -925,6 +1029,234 @@ function renderProductInSearchResult(productData, sourceLabel) {
 			event.preventDefault();
 			await window.erodusAPI.openExternalLink(link.dataset.openLink);
 		});
+	});
+}
+
+// Queue management functions
+function addToQueue(productName, productId, downloadLink, linkTypename) {
+	const queueItem = {
+		id: Date.now(),
+		productName: productName || "Unknown Product",
+		productId: productId || "N/A",
+		link: downloadLink,
+		typename: linkTypename || "Download",
+		addedAt: new Date().toISOString(),
+	};
+
+	state.queue.push(queueItem);
+	saveQueue();
+	renderQueue();
+
+	showToast({
+		type: "success",
+		title: "Added to Queue",
+		message: `${linkTypename} - ${productName} added to queue.`,
+	});
+}
+
+function removeFromQueue(itemId) {
+	state.queue = state.queue.filter((item) => item.id !== itemId);
+	saveQueue();
+	renderQueue();
+}
+
+function renderQueue() {
+	const queueCount = state.queue.length;
+	const historyCount = state.queueHistory.length;
+	const activeTab = document.querySelector(".queue-tab-btn.is-active")?.dataset.tab || "queue";
+	
+	if (elements.queueStatus) {
+		if (activeTab === "queue") {
+			elements.queueStatus.textContent = queueCount > 0 ? `${queueCount} item${queueCount !== 1 ? "s" : ""}` : "Empty";
+		} else {
+			elements.queueStatus.textContent = historyCount > 0 ? `${historyCount} item${historyCount !== 1 ? "s" : ""}` : "Empty";
+		}
+	}
+
+	if (elements.downloadAllBtn) {
+		elements.downloadAllBtn.disabled = queueCount === 0;
+	}
+
+	if (elements.clearQueueBtn) {
+		elements.clearQueueBtn.disabled = queueCount === 0;
+	}
+
+	if (elements.queueContent) {
+		if (queueCount === 0) {
+			elements.queueContent.innerHTML = '<p class="empty-state">No items in queue. Add download links from the feed or product search.</p>';
+		} else {
+			elements.queueContent.innerHTML = state.queue.map((item) => `
+				<div class="queue-item" data-queue-id="${item.id}" style="padding: 1rem; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 0.75rem; background-color: var(--surface);">
+					<div style="display: flex; justify-content: space-between; align-items: start; gap: 1rem;">
+						<div style="flex: 1;">
+							<div style="font-weight: 500; margin-bottom: 0.25rem;">${safeText(item.productName)}</div>
+							<div style="font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem;">ID: ${safeText(item.productId)}</div>
+							<div style="font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem;">Type: ${safeText(item.typename)}</div>
+							<div style="font-size: 0.75rem; color: var(--muted);">Added: ${formatDateDisplay(item.addedAt)}</div>
+						</div>
+						<button class="remove-from-queue-btn ghost-button" data-queue-id="${item.id}" type="button" style="flex-shrink: 0;">Remove</button>
+					</div>
+				</div>
+			`).join("");
+
+			// Attach remove button listeners
+			elements.queueContent.querySelectorAll(".remove-from-queue-btn").forEach((btn) => {
+				btn.addEventListener("click", () => {
+					removeFromQueue(Number(btn.dataset.queueId));
+				});
+			});
+		}
+	}
+}
+
+async function downloadAllQueue() {
+	if (state.queue.length === 0) {
+		showToast({
+			type: "warning",
+			title: "Queue Empty",
+			message: "There are no items in the queue to download.",
+		});
+		return;
+	}
+
+	const links = state.queue.map((item) => item.link);
+
+	try {
+		// Open all links in the default browser
+		for (const link of links) {
+			await window.erodusAPI.openExternalLink(link);
+		}
+
+		// Add queue items to history
+		state.queueHistory.push(
+			...state.queue.map((item) => ({
+				...item,
+				downloadedAt: new Date().toISOString(),
+			}))
+		);
+
+		// Keep history limited to last 100 items
+		if (state.queueHistory.length > 100) {
+			state.queueHistory = state.queueHistory.slice(-100);
+		}
+
+		// Clear the queue
+		state.queue = [];
+		saveQueue();
+		saveHistory();
+		renderQueue();
+		renderHistory();
+
+		showToast({
+			type: "success",
+			title: "Downloads Started",
+			message: `${links.length} link${links.length !== 1 ? "s" : ""} opened in your default browser.`,
+		});
+	} catch (error) {
+		showToast({
+			type: "error",
+			title: "Download Failed",
+			message: `Failed to open links: ${error.message || error}`,
+		});
+	}
+}
+
+function clearQueue() {
+	if (state.queue.length === 0) return;
+
+	state.queue = [];
+	saveQueue();
+	renderQueue();
+
+	showToast({
+		type: "info",
+		title: "Queue Cleared",
+		message: "All items have been removed from the queue.",
+	});
+}
+
+function renderHistory() {
+	const historyCount = state.queueHistory.length;
+	const queueCount = state.queue.length;
+	const activeTab = document.querySelector(".queue-tab-btn.is-active")?.dataset.tab || "queue";
+	
+	if (elements.historyStatus) {
+		if (activeTab === "history") {
+			elements.historyStatus.textContent = historyCount > 0 ? `${historyCount} item${historyCount !== 1 ? "s" : ""}` : "Empty";
+		} else {
+			elements.historyStatus.textContent = queueCount > 0 ? `${queueCount} item${queueCount !== 1 ? "s" : ""}` : "Empty";
+		}
+	}
+
+	if (elements.clearHistoryBtn) {
+		elements.clearHistoryBtn.disabled = historyCount === 0;
+	}
+
+	if (elements.historyContent) {
+		if (historyCount === 0) {
+			elements.historyContent.innerHTML = '<p class="empty-state">Downloaded items will appear here.</p>';
+		} else {
+			elements.historyContent.innerHTML = state.queueHistory.map((item) => `
+				<div class="history-item" style="padding: 1rem; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 0.75rem; background-color: var(--surface);">
+					<div style="font-weight: 500; margin-bottom: 0.25rem;">${safeText(item.productName)}</div>
+					<div style="font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem;">ID: ${safeText(item.productId)}</div>
+					<div style="font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem;">Type: ${safeText(item.typename)}</div>
+					<div style="font-size: 0.75rem; color: var(--muted);">Downloaded: ${formatDateDisplay(item.downloadedAt)}</div>
+				</div>
+			`).join("");
+		}
+	}
+}
+
+function switchQueueTab(tabName) {
+	// Update tab buttons
+	elements.queueTabBtns.forEach((btn) => {
+		btn.classList.toggle("is-active", btn.dataset.tab === tabName);
+		if (btn.dataset.tab === tabName) {
+			btn.style.color = "var(--text)";
+			btn.style.borderBottomColor = "var(--accent)";
+		} else {
+			btn.style.color = "var(--muted)";
+			btn.style.borderBottomColor = "transparent";
+		}
+	});
+
+	// Update tab content visibility
+	elements.queueTabContents.forEach((content) => {
+		if (content.dataset.tabContent === tabName) {
+			content.style.display = "block";
+			content.classList.add("is-active");
+		} else {
+			content.style.display = "none";
+			content.classList.remove("is-active");
+		}
+	});
+
+	// Update status label
+	if (tabName === "queue") {
+		const queueCount = state.queue.length;
+		if (elements.queueStatus) {
+			elements.queueStatus.textContent = queueCount > 0 ? `${queueCount} item${queueCount !== 1 ? "s" : ""}` : "Empty";
+		}
+	} else {
+		const historyCount = state.queueHistory.length;
+		if (elements.historyStatus) {
+			elements.historyStatus.textContent = historyCount > 0 ? `${historyCount} item${historyCount !== 1 ? "s" : ""}` : "Empty";
+		}
+	}
+}
+
+function clearHistory() {
+	if (state.queueHistory.length === 0) return;
+
+	state.queueHistory = [];
+	saveHistory();
+	renderHistory();
+
+	showToast({
+		type: "info",
+		title: "History Cleared",
+		message: "Queue history has been cleared.",
 	});
 }
 
@@ -1465,6 +1797,31 @@ function bindEvents() {
 			closeFilterModal();
 		});
 	}
+
+	// Queue page event listeners
+	if (elements.downloadAllBtn) {
+		elements.downloadAllBtn.addEventListener("click", downloadAllQueue);
+	}
+
+	if (elements.clearQueueBtn) {
+		elements.clearQueueBtn.addEventListener("click", clearQueue);
+	}
+
+	if (elements.clearHistoryBtn) {
+		elements.clearHistoryBtn.addEventListener("click", clearHistory);
+	}
+
+	// Queue tab switching
+	elements.queueTabBtns.forEach((btn) => {
+		btn.addEventListener("click", () => {
+			const tabName = btn.dataset.tab;
+			switchQueueTab(tabName);
+		});
+	});
+
+	// Initialize queue display on page load
+	renderQueue();
+	renderHistory();
 }
 
 function initializeThemeEditor() {
@@ -1480,6 +1837,8 @@ function initializeThemeEditor() {
 
 window.addEventListener("DOMContentLoaded", async () => {
 	initializeThemeEditor();
+	loadQueue();
+	loadHistory();
 	bindEvents();
 	setPage("feed");
 	await loadCategories();
