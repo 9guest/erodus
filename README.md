@@ -1,3 +1,14 @@
+<p align="center">
+   <img src="https://github.com/9guest/erodus/blob/main/build/icon.png?raw=true" alt="mediaSplitter" width="200" height="200" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/github/license/9guest/erodus" alt="License" />
+   <img src="https://img.shields.io/github/package-json/v/9guest/erodus" alt="Version" />
+   <img src="https://img.shields.io/github/issues/9guest/erodus" alt="Issues" />
+   <img src="https://img.shields.io/github/stars/9guest/erodus?style=social" alt="GitHub Stars" />
+</p>
+
 # EroDUS - Erovoice Desktop Client
 
 EroDUS is the desktop version of erovoice.desktop.us, a cross-platform application for downloading content from erovoice.us and Checking the DLsite / Fanza Product Info with product ID.
