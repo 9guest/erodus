@@ -11,6 +11,8 @@ const { autoUpdater } = updaterPkg;
 
 let updateListenersRegistered = false;
 let lastUpdateInfo = null;
+let updateDownloadInProgress = false;
+const latestReleaseUrl = "https://github.com/9guest/erodus/releases/latest";
 
 function compareVersions(leftVersion, rightVersion) {
     const leftParts = String(leftVersion || "0").split(".").map((part) => Number.parseInt(part, 10) || 0);
@@ -156,7 +158,7 @@ export function registerIpcHandlers(ipcMain, context) {
         if (!app.isPackaged) {
             return {
                 state: 'unavailable',
-                message: 'Update downloads are available in packaged builds only.',
+                message: 'Update links are available in packaged builds only.',
                 isPackaged: false,
             };
         }
@@ -171,10 +173,17 @@ export function registerIpcHandlers(ipcMain, context) {
                 };
             }
 
-            await autoUpdater.downloadUpdate();
+            await shell.openExternal(latestReleaseUrl);
+
+            sendUpdateStatus(context, {
+                state: 'available',
+                version: lastUpdateInfo?.version || null,
+                message: 'Latest release opened in your browser. Download and install it manually.',
+            });
+
             return {
-                state: 'downloading',
-                message: 'Downloading update in the background.',
+                state: 'available',
+                message: 'Latest release opened in your browser. Download and install it manually.',
                 version: lastUpdateInfo?.version || null,
                 isPackaged: true,
             };

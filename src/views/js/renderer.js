@@ -586,10 +586,11 @@ function applyUpdateState(updateState = {}) {
 	if (elements.downloadUpdateBtn) {
 		elements.downloadUpdateBtn.style.display = state.updateStatus.state === "available" ? "inline-flex" : "none";
 		elements.downloadUpdateBtn.disabled = state.updateStatus.state !== "available";
+		elements.downloadUpdateBtn.textContent = state.updateStatus.state === "available" ? "Open Latest Release" : "Download Update";
 	}
 	if (elements.installUpdateBtn) {
-		elements.installUpdateBtn.style.display = state.updateStatus.state === "downloaded" ? "inline-flex" : "none";
-		elements.installUpdateBtn.disabled = state.updateStatus.state !== "downloaded";
+		elements.installUpdateBtn.style.display = "none";
+		elements.installUpdateBtn.disabled = true;
 	}
 	if (elements.checkUpdatesBtn) {
 		elements.checkUpdatesBtn.disabled = !showActionButtons && state.updateStatus.state !== "error";
@@ -646,6 +647,9 @@ async function downloadUpdate() {
 			message: result?.message || "Downloading update...",
 			percent: 0,
 		});
+		if (result?.state === "available") {
+			showToast({ type: "info", title: "Release opened", message: result.message || "The latest release page opened in your browser." });
+		}
 	} catch (error) {
 		applyUpdateState({ state: "error", message: error.message || String(error), percent: 0 });
 		showToast({ type: "error", title: "Download failed", message: error.message || String(error) });
