@@ -1,5 +1,5 @@
 <p align="center">
-   <img src="https://github.com/9guest/erodus/blob/main/build/icon.png?raw=true" alt="mediaSplitter" width="200" height="200" />
+   <img src="https://github.com/9guest/erodus/blob/main/build/icon.png?raw=true" alt="erodus_icon" width="200" height="200" />
 </p>
 
 <p align="center">
