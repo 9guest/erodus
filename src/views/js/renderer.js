@@ -919,7 +919,7 @@ function renderProductInDetailsPanel(entry, productData, sourceLabel) {
 				<div class="detail-list" style="margin-top: 10px;">
 					${DownloadLinks.map((link) => `<div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem;">
 						<a class="inline-link" href="#" data-open-link="${link.link}">${link.typename}</a>
-						<button class="add-to-queue-btn ghost-button" data-product-name="${safeText(p.product_name)}" data-product-id="${safeText(p.product_id)}" data-link="${link.link}" data-typename="${link.typename}" type="button" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">+ Queue</button>
+							<button class="add-to-queue-btn ghost-button" data-product-name="${safeText(p.product_name)}" data-product-id="${safeText(p.product_id)}" data-link="${link.link}" data-typename="${link.typename}" data-image="${p.product_image || (p.product_image_samples && p.product_image_samples[0]) || ''}" type="button" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">+ Queue</button>
 					</div>`).join("")}
 				</div>
 			</div>
@@ -969,9 +969,10 @@ function renderProductInDetailsPanel(entry, productData, sourceLabel) {
 				event.preventDefault();
 				const productName = btn.dataset.productName;
 				const productId = btn.dataset.productId;
-				const link = btn.dataset.link;
-				const typename = btn.dataset.typename;
-				addToQueue(productName, productId, link, typename);
+					const link = btn.dataset.link;
+					const typename = btn.dataset.typename;
+					const image = btn.dataset.image || null;
+					addToQueue(productName, productId, link, typename, image);
 			});
 		});
 	});
@@ -1163,12 +1164,13 @@ function renderProductInSearchResult(productData, sourceLabel) {
 }
 
 // Queue management functions
-function addToQueue(productName, productId, downloadLink, linkTypename) {
+function addToQueue(productName, productId, downloadLink, linkTypename, thumbnail) {
 	const queueItem = {
 		id: Date.now(),
 		productName: productName || "Unknown Product",
 		productId: productId || "N/A",
 		link: downloadLink,
+		thumbnail: thumbnail || null,
 		typename: linkTypename || "Download",
 		addedAt: new Date().toISOString(),
 	};
@@ -1218,13 +1220,19 @@ function renderQueue() {
 			elements.queueContent.innerHTML = state.queue.map((item) => `
 				<div class="queue-item" data-queue-id="${item.id}" style="padding: 1rem; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 0.75rem; background-color: var(--surface);">
 					<div style="display: flex; justify-content: space-between; align-items: start; gap: 1rem;">
-						<div style="flex: 1;">
-							<div style="font-weight: 500; margin-bottom: 0.25rem;">${safeText(item.productName)}</div>
-							<div style="font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem;">ID: ${safeText(item.productId)}</div>
-							<div style="font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem;">Type: ${safeText(item.typename)}</div>
-							<div style="font-size: 0.75rem; color: var(--muted);">Added: ${formatDateDisplay(item.addedAt)}</div>
+						<div style="display:flex; gap:1rem; align-items:center; flex:1;">
+							${item.thumbnail ? `<img src="${item.thumbnail}" alt="thumb" style="width:64px;height:64px;object-fit:cover;border-radius:4px;">` : ''}
+							<div style="flex:1;">
+								<div style="font-weight: 500; margin-bottom: 0.25rem;">${safeText(item.productName)}</div>
+								<div style="font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem;">ID: ${safeText(item.productId)}</div>
+								<div style="font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem;">Type: ${safeText(item.typename)}</div>
+								<div style="font-size: 0.75rem; color: var(--muted);">Added: ${formatDateDisplay(item.addedAt)}</div>
+							</div>
 						</div>
-						<button class="remove-from-queue-btn ghost-button" data-queue-id="${item.id}" type="button" style="flex-shrink: 0;">Remove</button>
+							<div style="display: flex; gap: .5rem; align-items: center;">
+								<button class="download-item-btn primary-button" data-queue-id="${item.id}" data-link="${item.link || ''}" type="button" style="flex-shrink: 0;">Download</button>
+								<button class="remove-from-queue-btn ghost-button" data-queue-id="${item.id}" type="button" style="flex-shrink: 0;">Remove</button>
+							</div>
 					</div>
 				</div>
 			`).join("");
@@ -1235,6 +1243,39 @@ function renderQueue() {
 					removeFromQueue(Number(btn.dataset.queueId));
 				});
 			});
+
+				// Attach per-item download button listeners
+				elements.queueContent.querySelectorAll('.download-item-btn').forEach((btn) => {
+					btn.addEventListener('click', async (event) => {
+						event.preventDefault();
+						const id = Number(btn.dataset.queueId);
+						const link = btn.dataset.link;
+						if (!link) {
+							showToast({ type: 'error', title: 'No link', message: 'No link available for this item.' });
+							return;
+						}
+						btn.disabled = true;
+						let urlToOpen = link;
+						if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(urlToOpen)) urlToOpen = `https://${urlToOpen}`;
+						try {
+							await window.erodusAPI.openExternalLink(urlToOpen);
+							// on success, move item to history and remove from queue
+							const item = state.queue.find((q) => q.id === id);
+							if (item) {
+								state.queueHistory.push({ ...item, downloadedAt: new Date().toISOString() });
+								if (state.queueHistory.length > 100) state.queueHistory = state.queueHistory.slice(-100);
+								saveHistory();
+								removeFromQueue(id);
+								renderHistory();
+							}
+							showToast({ type: 'success', title: 'Opened', message: 'Link opened and added to history.' });
+						} catch (err) {
+							showToast({ type: 'error', title: 'Open failed', message: String(err) });
+						} finally {
+							btn.disabled = false;
+						}
+					});
+				});
 		}
 	}
 }
@@ -1249,45 +1290,62 @@ async function downloadAllQueue() {
 		return;
 	}
 
-	const links = state.queue.map((item) => item.link);
+	const queueItems = state.queue.slice();
+	if (!queueItems.length) {
+		showToast({ type: "warning", title: "Queue Empty", message: "There are no valid links in the queue." });
+		return;
+	}
 
-	try {
-		// Open all links in the default browser
-		for (const link of links) {
-			await window.erodusAPI.openExternalLink(link);
+	const failed = [];
+	const succeeded = [];
+
+	for (const item of queueItems) {
+		const originalLink = item.link;
+		if (!originalLink) {
+			failed.push({ item, error: 'Missing link' });
+			continue;
 		}
 
-		// Add queue items to history
-		state.queueHistory.push(
-			...state.queue.map((item) => ({
-				...item,
-				downloadedAt: new Date().toISOString(),
-			}))
-		);
+		// Ensure link looks like a URL; if not, try to prefix with https://
+		let urlToOpen = originalLink;
+		if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(urlToOpen)) {
+			urlToOpen = `https://${urlToOpen}`;
+		}
 
-		// Keep history limited to last 100 items
+		try {
+			// open link but don't let one failure stop the rest
+			await window.erodusAPI.openExternalLink(urlToOpen);
+			succeeded.push(item);
+			// small pause to avoid overwhelming the OS / default browser
+			await new Promise((res) => setTimeout(res, 150));
+		} catch (err) {
+			failed.push({ item, error: err?.message || String(err) });
+		}
+	}
+
+	// Move only succeeded items into history
+	if (succeeded.length) {
+		state.queueHistory.push(
+			...succeeded.map((it) => ({ ...it, downloadedAt: new Date().toISOString() }))
+		);
 		if (state.queueHistory.length > 100) {
 			state.queueHistory = state.queueHistory.slice(-100);
 		}
-
-		// Clear the queue
-		state.queue = [];
-		saveQueue();
 		saveHistory();
-		renderQueue();
-		renderHistory();
+	}
 
-		showToast({
-			type: "success",
-			title: "Downloads Started",
-			message: `${links.length} link${links.length !== 1 ? "s" : ""} opened in your default browser.`,
-		});
-	} catch (error) {
-		showToast({
-			type: "error",
-			title: "Download Failed",
-			message: `Failed to open links: ${error.message || error}`,
-		});
+	// Keep queue items that failed (so user can retry), remove succeeded ones
+	state.queue = state.queue.filter((item) => !succeeded.find((s) => s.id === item.id));
+	saveQueue();
+	renderQueue();
+	renderHistory();
+
+	if (failed.length === 0) {
+		showToast({ type: "success", title: "Downloads Started", message: `${succeeded.length} link${succeeded.length !== 1 ? "s" : ""} opened in your default browser.` });
+	} else if (succeeded.length === 0) {
+		showToast({ type: "error", title: "Download Failed", message: `Failed to open ${failed.length} link${failed.length !== 1 ? "s" : ""}.` });
+	} else {
+		showToast({ type: "warning", title: "Partial Success", message: `${succeeded.length} opened, ${failed.length} failed.` });
 	}
 }
 
@@ -1326,14 +1384,48 @@ function renderHistory() {
 		if (historyCount === 0) {
 			elements.historyContent.innerHTML = '<p class="empty-state">Downloaded items will appear here.</p>';
 		} else {
-			elements.historyContent.innerHTML = state.queueHistory.map((item) => `
-				<div class="history-item" style="padding: 1rem; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 0.75rem; background-color: var(--surface);">
-					<div style="font-weight: 500; margin-bottom: 0.25rem;">${safeText(item.productName)}</div>
-					<div style="font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem;">ID: ${safeText(item.productId)}</div>
-					<div style="font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem;">Type: ${safeText(item.typename)}</div>
-					<div style="font-size: 0.75rem; color: var(--muted);">Downloaded: ${formatDateDisplay(item.downloadedAt)}</div>
-				</div>
-			`).join("");
+				// render history sorted by downloadedAt descending (newest first)
+				const sortedHistory = (state.queueHistory || []).slice().sort((a, b) => {
+					const da = new Date(a.downloadedAt || 0).getTime();
+					const db = new Date(b.downloadedAt || 0).getTime();
+					return db - da;
+				});
+				elements.historyContent.innerHTML = sortedHistory.map((item) => `
+						<div class="history-item" style="padding: 1rem; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 0.75rem; background-color: var(--surface); display: flex; justify-content: space-between; gap: 1rem; align-items: start;">
+							<div style="display:flex; gap:1rem; align-items:center; flex:1;">
+								${item.thumbnail ? `<img src="${item.thumbnail}" alt="thumb" style="width:64px;height:64px;object-fit:cover;border-radius:4px;">` : ''}
+								<div style="flex: 1;">
+									<div style="font-weight: 500; margin-bottom: 0.25rem;">${safeText(item.productName)}</div>
+									<div style="font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem;">ID: ${safeText(item.productId)}</div>
+									<div style="font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem;">Type: ${safeText(item.typename)}</div>
+									<div style="font-size: 0.75rem; color: var(--muted);">Downloaded: ${formatDateDisplay(item.downloadedAt)}</div>
+								</div>
+							</div>
+							<div style="flex-shrink: 0; display:flex; flex-direction: column; gap: .5rem; align-items: flex-end;">
+								<button class="retry-history-btn ghost-button" data-history-id="${item.id}" data-link="${item.link || ''}" type="button" style="font-size: 0.85rem; padding: 0.35rem 0.6rem;">Retry</button>
+							</div>
+						</div>
+					`).join("");
+
+				// attach retry handlers for history items
+				elements.historyContent.querySelectorAll('.retry-history-btn').forEach((btn) => {
+					btn.addEventListener('click', async (event) => {
+						event.preventDefault();
+						const link = btn.dataset.link;
+						if (!link) {
+							showToast({ type: 'error', title: 'No link', message: 'No link available to retry.' });
+							return;
+						}
+						let urlToOpen = link;
+						if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(urlToOpen)) urlToOpen = `https://${urlToOpen}`;
+						try {
+							await window.erodusAPI.openExternalLink(urlToOpen);
+							showToast({ type: 'success', title: 'Opened', message: 'Link opened in your browser.' });
+						} catch (err) {
+							showToast({ type: 'error', title: 'Open failed', message: String(err) });
+						}
+					});
+				});
 		}
 	}
 }
@@ -1952,6 +2044,16 @@ function bindEvents() {
 	if (elements.installUpdateBtn) {
 		elements.installUpdateBtn.addEventListener("click", installUpdate);
 	}
+
+	// About page static external links
+	document.querySelectorAll('.page-view[data-page-view="about"] [data-open-link]').forEach((link) => {
+		link.addEventListener("click", async (event) => {
+			event.preventDefault();
+			const url = link.dataset.openLink;
+			if (!url) return;
+			await window.erodusAPI.openExternalLink(url);
+		});
+	});
 
 	if (window.erodusAPI.onUpdateStatus) {
 		window.erodusAPI.onUpdateStatus((payload) => {
