@@ -19,6 +19,9 @@ const erodusAPI = {
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
   downloadUpdate: () => ipcRenderer.invoke('download-update'),
   installUpdate: () => ipcRenderer.invoke('install-update'),
+  saveWallpaper: (payload) => ipcRenderer.invoke('save-wallpaper', payload),
+  loadWallpaper: () => ipcRenderer.invoke('load-wallpaper'),
+  clearWallpaper: () => ipcRenderer.invoke('clear-wallpaper'),
   onUpdateStatus: (callback) => {
     const listener = (_event, payload) => callback(payload);
     ipcRenderer.on('update-status', listener);

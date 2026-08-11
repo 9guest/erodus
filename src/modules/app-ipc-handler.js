@@ -313,4 +313,79 @@ export function registerIpcHandlers(ipcMain, context) {
             throw error;
         }
     });
+
+    ipcMain.handle('save-wallpaper', async (event, { base64Data, extension }) => {
+        try {
+            log.ipc('Saving wallpaper with extension:', extension);
+            const userDataPath = app.getPath("userData");
+            
+            const fs = await import("node:fs/promises");
+            try {
+                const files = await fs.readdir(userDataPath);
+                for (const file of files) {
+                    if (file.startsWith("wallpaper.")) {
+                        await fs.unlink(path.join(userDataPath, file));
+                    }
+                }
+            } catch (err) {
+                log.error('Error clearing old wallpapers:', err);
+            }
+
+            const fileName = `wallpaper${extension || ".png"}`;
+            const filePath = path.join(userDataPath, fileName);
+            const buffer = Buffer.from(base64Data, "base64");
+            await fs.writeFile(filePath, buffer);
+            log.ipc('Wallpaper saved to:', filePath);
+            return { success: true, fileName };
+        } catch (error) {
+            log.error('Error saving wallpaper:', error);
+            throw error;
+        }
+    });
+
+    ipcMain.handle('load-wallpaper', async () => {
+        try {
+            const userDataPath = app.getPath("userData");
+            const fs = await import("node:fs/promises");
+            const files = await fs.readdir(userDataPath);
+            const wallpaperFile = files.find(file => file.startsWith("wallpaper."));
+            if (!wallpaperFile) {
+                return null;
+            }
+
+            const filePath = path.join(userDataPath, wallpaperFile);
+            const buffer = await fs.readFile(filePath);
+            const base64 = buffer.toString("base64");
+            const ext = path.extname(wallpaperFile).substring(1);
+            
+            let mime = "image/png";
+            if (ext === "jpg" || ext === "jpeg") mime = "image/jpeg";
+            else if (ext === "gif") mime = "image/gif";
+            else if (ext === "webp") mime = "image/webp";
+            else if (ext === "bmp") mime = "image/bmp";
+            else if (ext === "svg") mime = "image/svg+xml";
+
+            return `data:${mime};base64,${base64}`;
+        } catch (error) {
+            log.error('Error loading wallpaper:', error);
+            return null;
+        }
+    });
+
+    ipcMain.handle('clear-wallpaper', async () => {
+        try {
+            const userDataPath = app.getPath("userData");
+            const fs = await import("node:fs/promises");
+            const files = await fs.readdir(userDataPath);
+            for (const file of files) {
+                if (file.startsWith("wallpaper.")) {
+                    await fs.unlink(path.join(userDataPath, file));
+                }
+            }
+            return { success: true };
+        } catch (error) {
+            log.error('Error clearing wallpaper:', error);
+            throw error;
+        }
+    });
 }

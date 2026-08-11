@@ -10,6 +10,9 @@
     <title>EroDUS</title>
   </head>
   <body>
+    <div class="app-background" id="app-background">
+      <div class="app-background-overlay" id="app-background-overlay"></div>
+    </div>
     <div class="app-shell">
       <aside class="sidebar">
         <div class="brand">
@@ -89,32 +92,159 @@
                 <div class="theme-switcher">
                   <button class="theme-button is-active" data-theme-choice="dark" type="button">Dark</button>
                   <button class="theme-button" data-theme-choice="light" type="button">Light</button>
+                  <button class="theme-button" data-theme-choice="nord" type="button">Nord</button>
+                  <button class="theme-button" data-theme-choice="sakura" type="button">Sakura</button>
+                  <button class="theme-button" data-theme-choice="ocean" type="button">Ocean</button>
+                  <button class="theme-button" data-theme-choice="purple" type="button">Purple Violet</button>
+                  <button class="theme-button" data-theme-choice="cybercyan" type="button">Cyber Cyan</button>
+                  <button class="theme-button" data-theme-choice="neonamethyst" type="button">Neon Amethyst</button>
+                  <button class="theme-button" data-theme-choice="emeraldmatrix" type="button">Emerald Matrix</button>
+                  <button class="theme-button" data-theme-choice="sunsetamber" type="button">Sunset Amber</button>
+                  <button class="theme-button" data-theme-choice="rosecrimson" type="button">Rose Crimson</button>
+                  <button class="theme-button" data-theme-choice="obsidianoled" type="button">Obsidian OLED</button>
                   <button class="theme-button" data-theme-choice="custom" type="button">Custom</button>
                 </div>
 
-                <div class="theme-editor" style="margin-top: 10px;">
-                  <label>
-                    <span>Custom theme JSON</span>
-                    <textarea id="theme-json" spellcheck="false" rows="12" placeholder='{"name":"Ocean","colors":{"bg":"#0c1220","surface":"#121a2b","text":"#e8eefc","muted":"#94a3b8","accent":"#4fd1c5"}}'></textarea>
-                  </label>
-                  <div class="form-actions" style="margin-top: 1rem;">
-                    <button class="primary-button" id="apply-theme-json" type="button">Apply JSON Theme</button>
-                    <input id="theme-json-file" type="file" accept="application/json" hidden>
-                    <button class="ghost-button" id="import-theme-btn" type="button">Import JSON</button>
-                    <button class="ghost-button" id="reset-theme-btn" type="button">Reset</button>
+                <div class="theme-editor" id="theme-editor-panel" style="margin-top: 10px; display: none; grid-template-columns: 1.2fr 1fr; gap: 1rem; align-items: start;">
+                  <!-- Left Column: Visual Color Pickers -->
+                  <div class="custom-color-pickers-panel" style="padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius-sm, 6px); background: rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 0.75rem;">
+                    <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.35rem;"><i class="fas fa-palette" style="color: var(--accent);"></i> Custom Theme Creator</div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem;">
+                      <label style="display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.8rem;">
+                        <span>Background (bg)</span>
+                        <input type="color" id="theme-color-bg" value="#0a0d14" style="width: 100%; height: 34px; border: 1px solid var(--border); padding: 2px; background: rgba(0,0,0,0.2); cursor: pointer; border-radius: 4px;">
+                      </label>
+                      <label style="display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.8rem;">
+                        <span>Sidebar (bgAccent)</span>
+                        <input type="color" id="theme-color-bgAccent" value="#111827" style="width: 100%; height: 34px; border: 1px solid var(--border); padding: 2px; background: rgba(0,0,0,0.2); cursor: pointer; border-radius: 4px;">
+                      </label>
+                      <label style="display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.8rem;">
+                        <span>Card Surface</span>
+                        <input type="color" id="theme-color-surface" value="#111827" style="width: 100%; height: 34px; border: 1px solid var(--border); padding: 2px; background: rgba(0,0,0,0.2); cursor: pointer; border-radius: 4px;">
+                      </label>
+                      <label style="display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.8rem;">
+                        <span>Surface Strong</span>
+                        <input type="color" id="theme-color-surfaceStrong" value="#182033" style="width: 100%; height: 34px; border: 1px solid var(--border); padding: 2px; background: rgba(0,0,0,0.2); cursor: pointer; border-radius: 4px;">
+                      </label>
+                      <label style="display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.8rem;">
+                        <span>Text Color</span>
+                        <input type="color" id="theme-color-text" value="#ecf2ff" style="width: 100%; height: 34px; border: 1px solid var(--border); padding: 2px; background: rgba(0,0,0,0.2); cursor: pointer; border-radius: 4px;">
+                      </label>
+                      <label style="display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.8rem;">
+                        <span>Muted Text</span>
+                        <input type="color" id="theme-color-muted" value="#9aa8c3" style="width: 100%; height: 34px; border: 1px solid var(--border); padding: 2px; background: rgba(0,0,0,0.2); cursor: pointer; border-radius: 4px;">
+                      </label>
+                      <label style="display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.8rem;">
+                        <span>Border Color</span>
+                        <input type="color" id="theme-color-border" value="#2d3748" style="width: 100%; height: 34px; border: 1px solid var(--border); padding: 2px; background: rgba(0,0,0,0.2); cursor: pointer; border-radius: 4px;">
+                      </label>
+                      <label style="display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.8rem;">
+                        <span>Accent Color</span>
+                        <input type="color" id="theme-color-accent" value="#65d6c2" style="width: 100%; height: 34px; border: 1px solid var(--border); padding: 2px; background: rgba(0,0,0,0.2); cursor: pointer; border-radius: 4px;">
+                      </label>
+                      <label style="display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.8rem; grid-column: span 2;">
+                        <span>Accent Active (Strong)</span>
+                        <input type="color" id="theme-color-accentStrong" value="#3bb7a2" style="width: 100%; height: 34px; border: 1px solid var(--border); padding: 2px; background: rgba(0,0,0,0.2); cursor: pointer; border-radius: 4px;">
+                      </label>
+                    </div>
+                    
+                    <div class="form-actions" style="margin-top: 0.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                      <button class="primary-button" id="apply-custom-picker-btn" type="button">Apply Custom Colors</button>
+                      <button class="ghost-button" id="reset-theme-btn" type="button">Reset</button>
+                    </div>
                   </div>
-                </div>
+                  
+                  <!-- Right Column: JSON Input & Short Guide -->
+                  <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div>
+                      <label style="display: grid; gap: 0.35rem;">
+                        <span style="font-size: 0.85rem; font-weight: 600;">Custom theme JSON</span>
+                        <textarea id="theme-json" spellcheck="false" rows="12" placeholder='{"name":"Custom","colors":{"bg":"#0c1220","surface":"#121a2b","text":"#e2e8f0","muted":"#94a3b8","accent":"#38bdf8"}}' style="width:100%; font-family: monospace; font-size: 0.82rem; padding: 0.6rem;"></textarea>
+                      </label>
+                      <div class="form-actions" style="margin-top: 0.75rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button class="primary-button" id="apply-theme-json" type="button">Apply JSON Theme</button>
+                        <input id="theme-json-file" type="file" accept="application/json" hidden>
+                        <button class="ghost-button" id="import-theme-btn" type="button">Import JSON</button>
+                      </div>
+                    </div>
+                    
+                    <div class="theme-guide" style="padding: 0.75rem; border: 1px dashed var(--border); border-radius: var(--radius-sm, 6px); background: rgba(255,255,255,0.01); font-size: 0.8rem; line-height: 1.4;">
+                      <div style="font-weight: 700; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.3rem;"><i class="fas fa-info-circle" style="color: var(--accent);"></i> Custom Theme Guide</div>
+                      <p style="margin: 0; color: var(--muted);">Adjusting color pickers generates the JSON string automatically. The colors are mapped to CSS variables driving Erodus views in real-time.</p>
+                    </div>
+                  </div>
+                </div>  
+                  <hr style="border: 0; border-top: 1px solid var(--border); margin: 1.5rem 0 1rem 0;">
+                  <div style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem;">Theme Preview</div>
+                  <div class="theme-preview">
+                    <div class="preview-swatch accent"></div>
+                    <div class="preview-swatch surface"></div>
+                    <div class="preview-swatch border"></div>
+                    <div class="preview-note" style="margin-bottom: 1rem;">All colors are driven by CSS variables, so custom themes can be added later without changing the layout.</div>
+                  </div>
               </div>
 
-              <div class="panel-card">
+              <!-- App Background Wallpaper settings -->
+              <div class="panel-card" style="margin-top: 1rem;">
                 <div class="panel-header">
-                  <h2>Theme Preview</h2>
+                  <h2>App Background Wallpaper</h2>
+                  <span class="muted">Set a custom background image with effects</span>
                 </div>
-                <div class="theme-preview">
-                  <div class="preview-swatch accent"></div>
-                  <div class="preview-swatch surface"></div>
-                  <div class="preview-swatch border"></div>
-                  <div class="preview-note" style="margin-bottom: 1rem;">All colors are driven by CSS variables, so custom themes can be added later without changing the layout.</div>
+                
+                <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap;">
+                  <button class="primary-button" id="wallpaper-import-btn" type="button">Import Wallpaper</button>
+                  <button class="ghost-button" id="wallpaper-clear-btn" type="button" style="display: none; border-color: rgba(248,113,113,0.3); color: #f87171;">Remove Wallpaper</button>
+                  <input type="file" id="wallpaper-file-input" accept="image/*" style="display: none;">
+                  <span class="muted" id="wallpaper-status" style="font-size: 0.85rem;">No wallpaper imported</span>
+                </div>
+                
+                <div class="wallpaper-controls" id="wallpaper-controls-panel" style="display: none; flex-direction: column; gap: 0.85rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem;">
+                    <label style="display: grid; gap: 0.35rem;">
+                      <span style="font-size: 0.85rem; font-weight: 600;">Position X (<span id="wallpaper-val-x">50</span>%)</span>
+                      <input type="range" id="wallpaper-pos-x" min="0" max="100" value="50" style="width: 100%; cursor: pointer;">
+                    </label>
+                    <label style="display: grid; gap: 0.35rem;">
+                      <span style="font-size: 0.85rem; font-weight: 600;">Position Y (<span id="wallpaper-val-y">50</span>%)</span>
+                      <input type="range" id="wallpaper-pos-y" min="0" max="100" value="50" style="width: 100%; cursor: pointer;">
+                    </label>
+                  </div>
+                  
+                  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem;">
+                    <label style="display: grid; gap: 0.35rem;">
+                      <span style="font-size: 0.85rem; font-weight: 600;">Scaling</span>
+                      <select id="wallpaper-scale" class="custom-select">
+                        <option value="cover">Cover (Fill)</option>
+                        <option value="contain">Contain (Fit)</option>
+                        <option value="100%">100% Size</option>
+                        <option value="120%">120% Size</option>
+                        <option value="150%">150% Size</option>
+                        <option value="200%">200% Size</option>
+                        <option value="250%">250% Size</option>
+                        <option value="300%">300% Size</option>
+                      </select>
+                    </label>
+                    <label style="display: grid; gap: 0.35rem;">
+                      <span style="font-size: 0.85rem; font-weight: 600;">Blur Level (<span id="wallpaper-val-blur">0</span>px)</span>
+                      <input type="range" id="wallpaper-blur" min="0" max="25" value="0" style="width: 100%; cursor: pointer;">
+                    </label>
+                    <label style="display: grid; gap: 0.35rem;">
+                      <span style="font-size: 0.85rem; font-weight: 600;">Darken Level (<span id="wallpaper-val-dark">0</span>%)</span>
+                      <input type="range" id="wallpaper-dark" min="0" max="95" value="0" style="width: 100%; cursor: pointer;">
+                    </label>
+                  </div>
+                  
+                  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem;">
+                    <label style="display: grid; gap: 0.35rem;">
+                      <span style="font-size: 0.85rem; font-weight: 600;">Sidebar Blur (<span id="wallpaper-val-sb-blur">18</span>px)</span>
+                      <input type="range" id="wallpaper-sb-blur" min="0" max="40" value="18" style="width: 100%; cursor: pointer;">
+                    </label>
+                    <label style="display: grid; gap: 0.35rem;">
+                      <span style="font-size: 0.85rem; font-weight: 600;">Sidebar Darken (<span id="wallpaper-val-sb-dark">10</span>%)</span>
+                      <input type="range" id="wallpaper-sb-dark" min="0" max="95" value="10" style="width: 100%; cursor: pointer;">
+                    </label>
+                  </div>
                 </div>
               </div>
             </section>
@@ -169,24 +299,37 @@
             </section>
 
             <section class="page-view" data-page-view="queue">
-              <div class="panel-card">
+              <div class="panel-card queue-panel-card">
                 <div class="panel-header">
                   <h2>&nbsp;</h2>
                   <span class="muted" id="queue-or-history-status">Empty</span>
                 </div>
 
                 <!-- Tab Navigation -->
-                <div class="queue-tabs" style="display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 1rem;">
+                <div class="queue-tabs" style="display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 1rem; flex: 0 0 auto;">
                   <button class="queue-tab-btn is-active" data-tab="queue" type="button" style="flex: 1; padding: 0.75rem; background: none; border: none; border-bottom: 2px solid transparent; color: var(--text); cursor: pointer; font-weight: 500; transition: all 0.2s ease;">Queue</button>
                   <button class="queue-tab-btn" data-tab="history" type="button" style="flex: 1; padding: 0.75rem; background: none; border: none; border-bottom: 2px solid transparent; color: var(--muted); cursor: pointer; font-weight: 500; transition: all 0.2s ease;">History</button>
                 </div>
 
                 <!-- Queue Tab Content -->
                 <div class="queue-tab-content is-active" data-tab-content="queue">
-                  <div id="queue-content" style="min-height: 200px;">
-                    <p class="empty-state">No items in queue. Add download links from the feed or product search.</p>
+                  <!-- Bulk selection actions for queue -->
+                  <div class="bulk-actions-bar" id="queue-bulk-actions" style="display: none;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                      <input type="checkbox" id="queue-select-all" style="cursor: pointer; width: 15px; height: 15px;">
+                      <label for="queue-select-all" style="cursor: pointer; font-size: 0.85rem; user-select: none;">Select All</label>
+                    </div>
+                    <button class="ghost-button" id="queue-delete-selected" type="button" style="font-size: 0.8rem; padding: 0.25rem 0.5rem; color: #f87171; border-color: rgba(248,113,113,0.3); border-radius: 4px;">Delete Selected</button>
                   </div>
-                  <div class="form-actions" style="margin-top: 1rem; margin-bottom: 1rem;">
+
+                  <!-- Scrollable items list -->
+                  <div class="scrollable-list-wrapper">
+                    <div id="queue-content">
+                      <p class="empty-state">No items in queue. Add download links from the feed or product search.</p>
+                    </div>
+                  </div>
+                  
+                  <div class="form-actions" style="flex: 0 0 auto; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border);">
                     <button class="primary-button" id="download-all-btn" type="button" disabled>Download All</button>
                     <button class="ghost-button" id="clear-queue-btn" type="button" disabled>Clear Queue</button>
                   </div>
@@ -194,14 +337,43 @@
 
                 <!-- History Tab Content -->
                 <div class="queue-tab-content" data-tab-content="history" style="display: none;">
-                  <div id="history-content" style="min-height: 200px;">
-                    <p class="empty-state">Downloaded items will appear here.</p>
+                  <!-- Search and filters for history -->
+                  <div class="history-filter-bar">
+                    <input id="history-search-input" type="text" placeholder="Search by title or ID..." style="flex: 1 1 180px; padding: 0.4rem 0.6rem; font-size: 0.85rem; border: 1px solid var(--border); border-radius: 4px; background: rgba(0,0,0,0.2); color: var(--text);">
+                    
+                    <div style="display: flex; gap: 0.25rem; align-items: center;">
+                      <span style="font-size: 0.75rem; color: var(--muted);">From:</span>
+                      <input id="history-date-min" type="date" style="padding: 0.35rem 0.5rem; font-size: 0.85rem; border: 1px solid var(--border); border-radius: 4px; background: rgba(0,0,0,0.2); color: var(--text);">
+                    </div>
+                    
+                    <div style="display: flex; gap: 0.25rem; align-items: center;">
+                      <span style="font-size: 0.75rem; color: var(--muted);">To:</span>
+                      <input id="history-date-max" type="date" style="padding: 0.35rem 0.5rem; font-size: 0.85rem; border: 1px solid var(--border); border-radius: 4px; background: rgba(0,0,0,0.2); color: var(--text);">
+                    </div>
+                    
+                    <button class="ghost-button" id="history-filter-clear-btn" type="button" style="font-size: 0.75rem; padding: 0.35rem 0.5rem; border-radius: 4px;">Reset</button>
                   </div>
-                  <div class="form-actions" style="margin-top: 1rem; margin-bottom: 1rem;">
+
+                  <!-- Bulk selection actions for history -->
+                  <div class="bulk-actions-bar" id="history-bulk-actions" style="display: none;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                      <input type="checkbox" id="history-select-all" style="cursor: pointer; width: 15px; height: 15px;">
+                      <label for="history-select-all" style="cursor: pointer; font-size: 0.85rem; user-select: none;">Select All</label>
+                    </div>
+                    <button class="ghost-button" id="history-delete-selected" type="button" style="font-size: 0.8rem; padding: 0.25rem 0.5rem; color: #f87171; border-color: rgba(248,113,113,0.3); border-radius: 4px;">Delete Selected</button>
+                  </div>
+
+                  <!-- Scrollable items list -->
+                  <div class="scrollable-list-wrapper">
+                    <div id="history-content">
+                      <p class="empty-state">Downloaded items will appear here.</p>
+                    </div>
+                  </div>
+                  
+                  <div class="form-actions" style="flex: 0 0 auto; margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border);">
                     <button class="ghost-button" id="clear-history-btn" type="button" disabled>Clear History</button>
                   </div>
                 </div>
-
               </div>
             </section>
           </div>

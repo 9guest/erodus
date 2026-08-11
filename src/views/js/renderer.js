@@ -40,6 +40,152 @@ const defaultThemes = {
 			accentStrong: "#0b7669",
 		},
 	},
+	nord: {
+		name: "Nord",
+		colors: {
+			bg: "#2e3440",
+			bgAccent: "#3b4252",
+			surface: "rgba(46, 52, 64, 0.92)",
+			surfaceStrong: "#434c5e",
+			text: "#d8dee9",
+			muted: "#81a1c1",
+			border: "rgba(216, 222, 233, 0.16)",
+			accent: "#88c0d0",
+			accentStrong: "#81a1c1",
+		},
+	},
+	sakura: {
+		name: "Sakura",
+		colors: {
+			bg: "#2d1e2f",
+			bgAccent: "#3d2b3e",
+			surface: "rgba(45, 30, 47, 0.9)",
+			surfaceStrong: "#4f3851",
+			text: "#ffd5e5",
+			muted: "#f2a6c2",
+			border: "rgba(242, 166, 194, 0.2)",
+			accent: "#ff7b9e",
+			accentStrong: "#ff527b",
+		},
+	},
+	ocean: {
+		name: "Ocean",
+		colors: {
+			bg: "#081b29",
+			bgAccent: "#0b2c3d",
+			surface: "rgba(11, 44, 61, 0.9)",
+			surfaceStrong: "#133b5c",
+			text: "#e0f2fe",
+			muted: "#7dd3fc",
+			border: "rgba(125, 211, 252, 0.15)",
+			accent: "#00abf0",
+			accentStrong: "#008fc7",
+		},
+	},
+	purple: {
+		name: "Purple Violet",
+		colors: {
+			bg: "#130f26",
+			bgAccent: "#1d163b",
+			surface: "rgba(29, 22, 59, 0.9)",
+			surfaceStrong: "#271e4f",
+			text: "#f5f3ff",
+			muted: "#a78bfa",
+			border: "rgba(167, 139, 250, 0.18)",
+			accent: "#c084fc",
+			accentStrong: "#a855f7",
+		},
+	},
+	cybercyan: {
+		name: "Cyber Cyan",
+		colors: {
+			bg: "#050914",
+			bgGradient: "linear-gradient(135deg, #050914 0%, #081630 60%, #150b30 100%)",
+			bgAccent: "#0a1224",
+			surface: "rgba(10, 18, 36, 0.9)",
+			surfaceStrong: "#132244",
+			text: "#ecf2ff",
+			muted: "#3b82f6",
+			border: "rgba(0, 245, 255, 0.18)",
+			accent: "#00f5ff",
+			accentStrong: "#00b3c7",
+		},
+	},
+	neonamethyst: {
+		name: "Neon Amethyst",
+		colors: {
+			bg: "#0f0514",
+			bgGradient: "linear-gradient(135deg, #0f0514 0%, #200830 60%, #300525 100%)",
+			bgAccent: "#1a0a24",
+			surface: "rgba(26, 10, 36, 0.9)",
+			surfaceStrong: "#331444",
+			text: "#fdf2f8",
+			muted: "#c084fc",
+			border: "rgba(192, 132, 252, 0.18)",
+			accent: "#d946ef",
+			accentStrong: "#a855f7",
+		},
+	},
+	emeraldmatrix: {
+		name: "Emerald Matrix",
+		colors: {
+			bg: "#030f0b",
+			bgGradient: "linear-gradient(135deg, #030f0b 0%, #06241a 60%, #0a2d24 100%)",
+			bgAccent: "#061d15",
+			surface: "rgba(6, 29, 21, 0.9)",
+			surfaceStrong: "#0e4230",
+			text: "#f0fdfa",
+			muted: "#10b981",
+			border: "rgba(45, 212, 191, 0.15)",
+			accent: "#2dd4bf",
+			accentStrong: "#0f766e",
+		},
+	},
+	sunsetamber: {
+		name: "Sunset Amber",
+		colors: {
+			bg: "#140905",
+			bgGradient: "linear-gradient(135deg, #140905 0%, #2c1208 60%, #3a1505 100%)",
+			bgAccent: "#221008",
+			surface: "rgba(34, 16, 8, 0.9)",
+			surfaceStrong: "#462110",
+			text: "#fffbeb",
+			muted: "#f97316",
+			border: "rgba(245, 158, 11, 0.15)",
+			accent: "#f59e0b",
+			accentStrong: "#b45309",
+		},
+	},
+	rosecrimson: {
+		name: "Rose Crimson",
+		colors: {
+			bg: "#140509",
+			bgGradient: "linear-gradient(135deg, #140509 0%, #2c0812 60%, #360520 100%)",
+			bgAccent: "#220a12",
+			surface: "rgba(34, 10, 18, 0.9)",
+			surfaceStrong: "#4a1424",
+			text: "#fff1f2",
+			muted: "#fb7185",
+			border: "rgba(244, 63, 94, 0.18)",
+			accent: "#f43f5e",
+			accentStrong: "#be123c",
+		},
+	},
+	obsidianoled: {
+		name: "Obsidian OLED",
+		colors: {
+			bg: "#000000",
+			bgGradient: "linear-gradient(135deg, #000000 0%, #0a0a0a 60%, #121212 100%)",
+			bgAccent: "#0d0d0d",
+			surface: "rgba(13, 13, 13, 0.9)",
+			surfaceStrong: "#1a1a1a",
+			text: "#f5f5f7",
+			muted: "#86868b",
+			border: "rgba(255, 255, 255, 0.12)",
+			accent: "#ffffff",
+			accentStrong: "#cccccc",
+		},
+	},
 };
 
 const state = {
@@ -133,11 +279,22 @@ const elements = {
 	downloadUpdateBtn: $("#download-update-btn"),
 	installUpdateBtn: $("#install-update-btn"),
 	themeButtons: Array.from(document.querySelectorAll(".theme-button")),
+	themeEditorPanel: $("#theme-editor-panel"),
 	themeJson: $("#theme-json"),
 	applyThemeJson: $("#apply-theme-json"),
 	importThemeBtn: $("#import-theme-btn"),
 	themeJsonFile: $("#theme-json-file"),
 	resetThemeBtn: $("#reset-theme-btn"),
+	themeColorBg: $("#theme-color-bg"),
+	themeColorBgAccent: $("#theme-color-bgAccent"),
+	themeColorSurface: $("#theme-color-surface"),
+	themeColorSurfaceStrong: $("#theme-color-surfaceStrong"),
+	themeColorText: $("#theme-color-text"),
+	themeColorMuted: $("#theme-color-muted"),
+	themeColorBorder: $("#theme-color-border"),
+	themeColorAccent: $("#theme-color-accent"),
+	themeColorAccentStrong: $("#theme-color-accentStrong"),
+	applyCustomPickerBtn: $("#apply-custom-picker-btn"),
 	floatingFilterBtn: $("#floating-filter-btn"),
 	filterModalOverlay: $("#filter-modal-overlay"),
 	filterModal: $("#filter-modal"),
@@ -164,6 +321,43 @@ const elements = {
 	queueTabBtns: Array.from(document.querySelectorAll(".queue-tab-btn")),
 	queueTabContents: Array.from(document.querySelectorAll(".queue-tab-content")),
 	toastContainer: $("#toast-container"),
+	
+	// History Search/Filters
+	historySearchInput: $("#history-search-input"),
+	historyDateMin: $("#history-date-min"),
+	historyDateMax: $("#history-date-max"),
+	historyFilterClearBtn: $("#history-filter-clear-btn"),
+	
+	// Queue Bulk Selection
+	queueBulkActions: $("#queue-bulk-actions"),
+	queueSelectAll: $("#queue-select-all"),
+	queueDeleteSelected: $("#queue-delete-selected"),
+	
+	// History Bulk Selection
+	historyBulkActions: $("#history-bulk-actions"),
+	historySelectAll: $("#history-select-all"),
+	historyDeleteSelected: $("#history-delete-selected"),
+	historyFilterBar: $(".history-filter-bar"),
+
+	// Wallpaper Elements
+	wallpaperImportBtn: $("#wallpaper-import-btn"),
+	wallpaperClearBtn: $("#wallpaper-clear-btn"),
+	wallpaperFileInput: $("#wallpaper-file-input"),
+	wallpaperStatus: $("#wallpaper-status"),
+	wallpaperControlsPanel: $("#wallpaper-controls-panel"),
+	wallpaperPosX: $("#wallpaper-pos-x"),
+	wallpaperPosY: $("#wallpaper-pos-y"),
+	wallpaperScale: $("#wallpaper-scale"),
+	wallpaperBlur: $("#wallpaper-blur"),
+	wallpaperDark: $("#wallpaper-dark"),
+	wallpaperValX: $("#wallpaper-val-x"),
+	wallpaperValY: $("#wallpaper-val-y"),
+	wallpaperValBlur: $("#wallpaper-val-blur"),
+	wallpaperValDark: $("#wallpaper-val-dark"),
+	wallpaperSbBlur: $("#wallpaper-sb-blur"),
+	wallpaperSbDark: $("#wallpaper-sb-dark"),
+	wallpaperValSbBlur: $("#wallpaper-val-sb-blur"),
+	wallpaperValSbDark: $("#wallpaper-val-sb-dark"),
 };
 
 function isNarrowViewport() {
@@ -377,7 +571,12 @@ function buildDetailsMarkup(entry) {
 		</div>
 		<div class="detail-group">
 			<div class="detail-label">Download Links</div>
-			<div class="detail-list">${(entry.content?.downloadLinks || []).map((link) => `<div><a class="inline-link" href="#" data-open-link="${link.link}">${link.typename}</a></div>`).join("") || "—"}</div>
+			<div class="detail-list" style="margin-top: 10px;">
+				${(entry.content?.downloadLinks || []).map((link) => `<div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem;">
+					<a class="inline-link" href="#" data-open-link="${link.link}">${link.typename}</a>
+					<button class="add-to-queue-btn ghost-button" data-product-name="${safeText(entry.title)}" data-product-id="${safeText(entry.content?.productId || 'N/A')}" data-link="${link.link}" data-typename="${link.typename}" data-image="${entry.content?.image || ''}" type="button" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">+ Queue</button>
+				</div>`).join("") || "—"}
+			</div>
 		</div>
 		<div class="detail-group">
 			<div class="detail-label">Product</div>
@@ -385,6 +584,21 @@ function buildDetailsMarkup(entry) {
 			<div class="detail-list">${safeText(entry.content?.productLink)}</div>
 		</div>
 	`;
+}
+
+function bindQueueButtons(container) {
+	if (!container) return;
+	container.querySelectorAll(".add-to-queue-btn").forEach((btn) => {
+		btn.addEventListener("click", (event) => {
+			event.preventDefault();
+			const productName = btn.dataset.productName;
+			const productId = btn.dataset.productId;
+			const link = btn.dataset.link;
+			const typename = btn.dataset.typename;
+			const image = btn.dataset.image || null;
+			addToQueue(productName, productId, link, typename, image);
+		});
+	});
 }
 
 function syncDetailsMarkup(entry, sourceLabel) {
@@ -412,6 +626,7 @@ function syncDetailsMarkup(entry, sourceLabel) {
 					await window.erodusAPI.openExternalLink(link.dataset.openLink);
 				});
 			});
+			bindQueueButtons(container);
 		});
 	}
 }
@@ -447,6 +662,13 @@ function setThemeVars(theme) {
 	const colors = theme.colors || {};
 	root.dataset.theme = theme.name?.toLowerCase() === "light" ? "light" : "dark";
 	root.style.setProperty("--bg", colors.bg || defaultThemes.dark.colors.bg);
+	
+	if (colors.bgGradient) {
+		root.style.setProperty("--bg-gradient", colors.bgGradient);
+	} else {
+		root.style.setProperty("--bg-gradient", `radial-gradient(circle at top left, rgba(101, 214, 194, 0.15), transparent 30%), radial-gradient(circle at bottom right, rgba(96, 165, 250, 0.10), transparent 30%), ${colors.bg || defaultThemes.dark.colors.bg}`);
+	}
+	
 	root.style.setProperty("--bg-accent", colors.bgAccent || defaultThemes.dark.colors.bgAccent);
 	root.style.setProperty("--surface", colors.surface || defaultThemes.dark.colors.surface);
 	root.style.setProperty("--surface-strong", colors.surfaceStrong || defaultThemes.dark.colors.surfaceStrong);
@@ -455,6 +677,43 @@ function setThemeVars(theme) {
 	root.style.setProperty("--border", colors.border || defaultThemes.dark.colors.border);
 	root.style.setProperty("--accent", colors.accent || defaultThemes.dark.colors.accent);
 	root.style.setProperty("--accent-strong", colors.accentStrong || defaultThemes.dark.colors.accentStrong);
+}
+
+function rgbaToHex(rgba) {
+	if (!rgba) return "#000000";
+	if (rgba.startsWith("#")) {
+		if (rgba.length === 4) {
+			return "#" + rgba[1] + rgba[1] + rgba[2] + rgba[2] + rgba[3] + rgba[3];
+		}
+		return rgba.substring(0, 7);
+	}
+	const parts = rgba.match(/\d+/g);
+	if (!parts) return "#000000";
+	const r = parseInt(parts[0]).toString(16).padStart(2, "0");
+	const g = parseInt(parts[1]).toString(16).padStart(2, "0");
+	const b = parseInt(parts[2]).toString(16).padStart(2, "0");
+	return `#${r}${g}${b}`;
+}
+
+function hexToRgba(hex, alpha) {
+	if (!hex.startsWith("#")) return hex;
+	const r = parseInt(hex.slice(1, 3), 16);
+	const g = parseInt(hex.slice(3, 5), 16);
+	const b = parseInt(hex.slice(5, 7), 16);
+	return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function updateColorPickersFromTheme(theme) {
+	const colors = theme?.colors || {};
+	if (elements.themeColorBg) elements.themeColorBg.value = rgbaToHex(colors.bg || "#0a0d14");
+	if (elements.themeColorBgAccent) elements.themeColorBgAccent.value = rgbaToHex(colors.bgAccent || "#111827");
+	if (elements.themeColorSurface) elements.themeColorSurface.value = rgbaToHex(colors.surface || "#111827");
+	if (elements.themeColorSurfaceStrong) elements.themeColorSurfaceStrong.value = rgbaToHex(colors.surfaceStrong || "#182033");
+	if (elements.themeColorText) elements.themeColorText.value = rgbaToHex(colors.text || "#ecf2ff");
+	if (elements.themeColorMuted) elements.themeColorMuted.value = rgbaToHex(colors.muted || "#9aa8c3");
+	if (elements.themeColorBorder) elements.themeColorBorder.value = rgbaToHex(colors.border || "#2d3748");
+	if (elements.themeColorAccent) elements.themeColorAccent.value = rgbaToHex(colors.accent || "#65d6c2");
+	if (elements.themeColorAccentStrong) elements.themeColorAccentStrong.value = rgbaToHex(colors.accentStrong || "#3bb7a2");
 }
 
 function saveTheme(themeName, customTheme = null) {
@@ -485,10 +744,16 @@ function applyTheme(themeName, customTheme = null) {
 	}
 
 	setThemeVars(theme);
+	updateColorPickersFromTheme(theme);
 	state.themeName = themeName;
 	elements.themeButtons.forEach((button) => {
 		button.classList.toggle("is-active", button.dataset.themeChoice === themeName);
 	});
+
+	if (elements.themeEditorPanel) {
+		elements.themeEditorPanel.style.display = themeName === "custom" ? "grid" : "none";
+	}
+
 	if (themeName !== "custom") {
 		saveTheme(themeName);
 	}
@@ -737,6 +1002,34 @@ function setPage(page) {
 	}
 }
 
+const findHistoryItem = (entry) => {
+	const pId = entry.content?.productId;
+	const title = entry.title;
+	return (state.queueHistory || []).find((h) => {
+		if (pId && pId !== "N/A" && h.productId && h.productId !== "N/A") {
+			return pId.toLowerCase() === h.productId.toLowerCase();
+		}
+		if (title && h.productName) {
+			return title.trim().toLowerCase() === h.productName.trim().toLowerCase();
+		}
+		return false;
+	});
+};
+
+const findQueueItem = (entry) => {
+	const pId = entry.content?.productId;
+	const title = entry.title;
+	return (state.queue || []).find((q) => {
+		if (pId && pId !== "N/A" && q.productId && q.productId !== "N/A") {
+			return pId.toLowerCase() === q.productId.toLowerCase();
+		}
+		if (title && q.productName) {
+			return title.trim().toLowerCase() === q.productName.trim().toLowerCase();
+		}
+		return false;
+	});
+};
+
 function renderFeedResults(entries) {
 	if (!entries.length) {
 		elements.feedResults.innerHTML = '<p class="empty-state">No entries found.</p>';
@@ -746,12 +1039,23 @@ function renderFeedResults(entries) {
 	elements.feedResults.innerHTML = entries.map((entry, index) => {
 		const categories = entry.categories || [];
 		const image = entry.thumbnail || entry.content?.image;
+		const historyItem = findHistoryItem(entry);
+		const queueItem = findQueueItem(entry);
+
+		let badgeHtml = "";
+		if (historyItem) {
+			badgeHtml = `<span class="downloaded-badge"><i class="fas fa-check-circle"></i> Downloaded: ${formatDateDisplay(historyItem.downloadedAt)}</span>`;
+		} else if (queueItem) {
+			badgeHtml = `<span class="queued-badge"><i class="fas fa-clock"></i> In Queue</span>`;
+		}
+
 		return `
 			<article class="result-item" data-feed-index="${index}">
 				<div class="result-item__title">${safeText(entry.title)}</div>
 				<div class="result-item__meta">
 					<span>${formatDateDisplay(entry.published)}</span>
 					<span>${entry.content?.fileSize ? `File Size: ${safeText(entry.content.fileSize)}` : "No file size"}</span>
+					${badgeHtml}
 				</div>
 				${image ? `<img class="details-image" src="${image}" alt="${safeText(entry.title)}">` : ""}
 				<div class="chip-row">
@@ -832,13 +1136,34 @@ async function loadDetailsFromFeedEntry(entry) {
 			openDetailsModal();
 		}
 	} catch (error) {
-		const message = `Failed to load product details: ${error.message || error}`;
-		if (elements.detailsSource) elements.detailsSource.textContent = lookupInfo.sourceLabel;
-		if (elements.detailsModalSource) elements.detailsModalSource.textContent = lookupInfo.sourceLabel;
-		if (elements.detailsContent) elements.detailsContent.innerHTML = `<p class="empty-state">${safeText(message)}</p>`;
-		if (elements.detailsModalContent) elements.detailsModalContent.innerHTML = `<p class="empty-state">${safeText(message)}</p>`;
-		if (isNarrowViewport()) {
-			openDetailsModal();
+		if (lookupInfo.sourceLabel === "DLSite") {
+			// Fallback to Erovoice feed info
+			syncDetailsMarkup(entry, "Erovoice feed (DLSite fallback)");
+
+			const noticeHtml = `
+				<div class="regional-warning-banner">
+					<strong><i class="fas fa-exclamation-triangle"></i> Notice:</strong> Failed to fetch DLsite details (This item might be restricted by Japan regional block. You may need a VPN connected to Japan to access DLsite info). Falling back to Erovoice API info.
+				</div>
+			`;
+
+			if (elements.detailsContent) {
+				elements.detailsContent.insertAdjacentHTML('afterbegin', noticeHtml);
+			}
+			if (elements.detailsModalContent) {
+				elements.detailsModalContent.insertAdjacentHTML('afterbegin', noticeHtml);
+			}
+			if (isNarrowViewport()) {
+				openDetailsModal();
+			}
+		} else {
+			const message = `Failed to load product details: ${error.message || error}`;
+			if (elements.detailsSource) elements.detailsSource.textContent = lookupInfo.sourceLabel;
+			if (elements.detailsModalSource) elements.detailsModalSource.textContent = lookupInfo.sourceLabel;
+			if (elements.detailsContent) elements.detailsContent.innerHTML = `<p class="empty-state">${safeText(message)}</p>`;
+			if (elements.detailsModalContent) elements.detailsModalContent.innerHTML = `<p class="empty-state">${safeText(message)}</p>`;
+			if (isNarrowViewport()) {
+				openDetailsModal();
+			}
 		}
 	}
 }
@@ -964,17 +1289,7 @@ function renderProductInDetailsPanel(entry, productData, sourceLabel) {
 		});
 
 		// Attach queue button handlers
-		container.querySelectorAll(".add-to-queue-btn").forEach((btn) => {
-			btn.addEventListener("click", (event) => {
-				event.preventDefault();
-				const productName = btn.dataset.productName;
-				const productId = btn.dataset.productId;
-					const link = btn.dataset.link;
-					const typename = btn.dataset.typename;
-					const image = btn.dataset.image || null;
-					addToQueue(productName, productId, link, typename, image);
-			});
-		});
+		bindQueueButtons(container);
 	});
 }
 
@@ -1213,6 +1528,13 @@ function renderQueue() {
 		elements.clearQueueBtn.disabled = queueCount === 0;
 	}
 
+	if (elements.queueBulkActions) {
+		elements.queueBulkActions.style.display = queueCount > 0 ? "flex" : "none";
+	}
+	if (elements.queueSelectAll) {
+		elements.queueSelectAll.checked = false;
+	}
+
 	if (elements.queueContent) {
 		if (queueCount === 0) {
 			elements.queueContent.innerHTML = '<p class="empty-state">No items in queue. Add download links from the feed or product search.</p>';
@@ -1221,6 +1543,7 @@ function renderQueue() {
 				<div class="queue-item" data-queue-id="${item.id}" style="padding: 1rem; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 0.75rem; background-color: var(--surface);">
 					<div style="display: flex; justify-content: space-between; align-items: start; gap: 1rem;">
 						<div style="display:flex; gap:1rem; align-items:center; flex:1;">
+							<input type="checkbox" class="queue-item-checkbox" data-queue-id="${item.id}" style="cursor: pointer; width: 16px; height: 16px; flex-shrink: 0;">
 							${item.thumbnail ? `<img src="${item.thumbnail}" alt="thumb" style="width:64px;height:64px;object-fit:cover;border-radius:4px;">` : ''}
 							<div style="flex:1;">
 								<div style="font-weight: 500; margin-bottom: 0.25rem;">${safeText(item.productName)}</div>
@@ -1237,6 +1560,15 @@ function renderQueue() {
 				</div>
 			`).join("");
 
+			// Attach checkbox toggle change listeners
+			const checkboxes = elements.queueContent.querySelectorAll(".queue-item-checkbox");
+			checkboxes.forEach((cb) => {
+				cb.addEventListener("change", () => {
+					const allChecked = Array.from(checkboxes).every((c) => c.checked);
+					if (elements.queueSelectAll) elements.queueSelectAll.checked = allChecked;
+				});
+			});
+
 			// Attach remove button listeners
 			elements.queueContent.querySelectorAll(".remove-from-queue-btn").forEach((btn) => {
 				btn.addEventListener("click", () => {
@@ -1244,39 +1576,44 @@ function renderQueue() {
 				});
 			});
 
-				// Attach per-item download button listeners
-				elements.queueContent.querySelectorAll('.download-item-btn').forEach((btn) => {
-					btn.addEventListener('click', async (event) => {
-						event.preventDefault();
-						const id = Number(btn.dataset.queueId);
-						const link = btn.dataset.link;
-						if (!link) {
-							showToast({ type: 'error', title: 'No link', message: 'No link available for this item.' });
-							return;
+			// Attach per-item download button listeners
+			elements.queueContent.querySelectorAll('.download-item-btn').forEach((btn) => {
+				btn.addEventListener('click', async (event) => {
+					event.preventDefault();
+					const id = Number(btn.dataset.queueId);
+					const link = btn.dataset.link;
+					if (!link) {
+						showToast({ type: 'error', title: 'No link', message: 'No link available for this item.' });
+						return;
+					}
+					btn.disabled = true;
+					let urlToOpen = link;
+					if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(urlToOpen)) urlToOpen = `https://${urlToOpen}`;
+					try {
+						await window.erodusAPI.openExternalLink(urlToOpen);
+						// on success, move item to history and remove from queue
+						const item = state.queue.find((q) => q.id === id);
+						if (item) {
+							state.queueHistory.push({ ...item, downloadedAt: new Date().toISOString() });
+							if (state.queueHistory.length > 100) state.queueHistory = state.queueHistory.slice(-100);
+							saveHistory();
+							removeFromQueue(id);
+							renderHistory();
 						}
-						btn.disabled = true;
-						let urlToOpen = link;
-						if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(urlToOpen)) urlToOpen = `https://${urlToOpen}`;
-						try {
-							await window.erodusAPI.openExternalLink(urlToOpen);
-							// on success, move item to history and remove from queue
-							const item = state.queue.find((q) => q.id === id);
-							if (item) {
-								state.queueHistory.push({ ...item, downloadedAt: new Date().toISOString() });
-								if (state.queueHistory.length > 100) state.queueHistory = state.queueHistory.slice(-100);
-								saveHistory();
-								removeFromQueue(id);
-								renderHistory();
-							}
-							showToast({ type: 'success', title: 'Opened', message: 'Link opened and added to history.' });
-						} catch (err) {
-							showToast({ type: 'error', title: 'Open failed', message: String(err) });
-						} finally {
-							btn.disabled = false;
-						}
-					});
+						showToast({ type: 'success', title: 'Opened', message: 'Link opened and added to history.' });
+					} catch (err) {
+						showToast({ type: 'error', title: 'Open failed', message: String(err) });
+					} finally {
+						btn.disabled = false;
+					}
 				});
+			});
 		}
+	}
+
+	// Update feed badges in real-time
+	if (state.feedEntries) {
+		renderFeedResults(state.feedEntries);
 	}
 }
 
@@ -1364,13 +1701,36 @@ function clearQueue() {
 }
 
 function renderHistory() {
+	const query = (elements.historySearchInput?.value || "").trim().toLowerCase();
+	const dateMinVal = elements.historyDateMin?.value;
+	const dateMaxVal = elements.historyDateMax?.value;
+	const dateMin = dateMinVal ? new Date(dateMinVal + 'T00:00:00') : null;
+	const dateMax = dateMaxVal ? new Date(dateMaxVal + 'T23:59:59') : null;
+
+	const filteredHistory = (state.queueHistory || []).filter((item) => {
+		if (query) {
+			const matchesTitle = item.productName && item.productName.toLowerCase().includes(query);
+			const matchesId = item.productId && item.productId.toLowerCase().includes(query);
+			if (!matchesTitle && !matchesId) return false;
+		}
+		if (dateMin && item.downloadedAt) {
+			const downloadDate = new Date(item.downloadedAt);
+			if (downloadDate < dateMin) return false;
+		}
+		if (dateMax && item.downloadedAt) {
+			const downloadDate = new Date(item.downloadedAt);
+			if (downloadDate > dateMax) return false;
+		}
+		return true;
+	});
+
 	const historyCount = state.queueHistory.length;
 	const queueCount = state.queue.length;
 	const activeTab = document.querySelector(".queue-tab-btn.is-active")?.dataset.tab || "queue";
 	
 	if (elements.historyStatus) {
 		if (activeTab === "history") {
-			elements.historyStatus.textContent = historyCount > 0 ? `${historyCount} item${historyCount !== 1 ? "s" : ""}` : "Empty";
+			elements.historyStatus.textContent = filteredHistory.length > 0 ? `${filteredHistory.length} item${filteredHistory.length !== 1 ? "s" : ""}` : "Empty";
 		} else {
 			elements.historyStatus.textContent = queueCount > 0 ? `${queueCount} item${queueCount !== 1 ? "s" : ""}` : "Empty";
 		}
@@ -1380,53 +1740,81 @@ function renderHistory() {
 		elements.clearHistoryBtn.disabled = historyCount === 0;
 	}
 
-	if (elements.historyContent) {
-		if (historyCount === 0) {
-			elements.historyContent.innerHTML = '<p class="empty-state">Downloaded items will appear here.</p>';
-		} else {
-				// render history sorted by downloadedAt descending (newest first)
-				const sortedHistory = (state.queueHistory || []).slice().sort((a, b) => {
-					const da = new Date(a.downloadedAt || 0).getTime();
-					const db = new Date(b.downloadedAt || 0).getTime();
-					return db - da;
-				});
-				elements.historyContent.innerHTML = sortedHistory.map((item) => `
-						<div class="history-item" style="padding: 1rem; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 0.75rem; background-color: var(--surface); display: flex; justify-content: space-between; gap: 1rem; align-items: start;">
-							<div style="display:flex; gap:1rem; align-items:center; flex:1;">
-								${item.thumbnail ? `<img src="${item.thumbnail}" alt="thumb" style="width:64px;height:64px;object-fit:cover;border-radius:4px;">` : ''}
-								<div style="flex: 1;">
-									<div style="font-weight: 500; margin-bottom: 0.25rem;">${safeText(item.productName)}</div>
-									<div style="font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem;">ID: ${safeText(item.productId)}</div>
-									<div style="font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem;">Type: ${safeText(item.typename)}</div>
-									<div style="font-size: 0.75rem; color: var(--muted);">Downloaded: ${formatDateDisplay(item.downloadedAt)}</div>
-								</div>
-							</div>
-							<div style="flex-shrink: 0; display:flex; flex-direction: column; gap: .5rem; align-items: flex-end;">
-								<button class="retry-history-btn ghost-button" data-history-id="${item.id}" data-link="${item.link || ''}" type="button" style="font-size: 0.85rem; padding: 0.35rem 0.6rem;">Retry</button>
-							</div>
-						</div>
-					`).join("");
+	if (elements.historyFilterBar) {
+		elements.historyFilterBar.style.display = historyCount > 0 ? "flex" : "none";
+	}
 
-				// attach retry handlers for history items
-				elements.historyContent.querySelectorAll('.retry-history-btn').forEach((btn) => {
-					btn.addEventListener('click', async (event) => {
-						event.preventDefault();
-						const link = btn.dataset.link;
-						if (!link) {
-							showToast({ type: 'error', title: 'No link', message: 'No link available to retry.' });
-							return;
-						}
-						let urlToOpen = link;
-						if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(urlToOpen)) urlToOpen = `https://${urlToOpen}`;
-						try {
-							await window.erodusAPI.openExternalLink(urlToOpen);
-							showToast({ type: 'success', title: 'Opened', message: 'Link opened in your browser.' });
-						} catch (err) {
-							showToast({ type: 'error', title: 'Open failed', message: String(err) });
-						}
-					});
+	if (elements.historyBulkActions) {
+		elements.historyBulkActions.style.display = filteredHistory.length > 0 ? "flex" : "none";
+	}
+	if (elements.historySelectAll) {
+		elements.historySelectAll.checked = false;
+	}
+
+	if (elements.historyContent) {
+		if (filteredHistory.length === 0) {
+			elements.historyContent.innerHTML = historyCount === 0 
+				? '<p class="empty-state">Downloaded items will appear here.</p>'
+				: '<p class="empty-state">No matching history records found.</p>';
+		} else {
+			// render history sorted by downloadedAt descending (newest first)
+			const sortedHistory = filteredHistory.slice().sort((a, b) => {
+				const da = new Date(a.downloadedAt || 0).getTime();
+				const db = new Date(b.downloadedAt || 0).getTime();
+				return db - da;
+			});
+			elements.historyContent.innerHTML = sortedHistory.map((item) => `
+				<div class="history-item" style="padding: 1rem; border: 1px solid var(--border); border-radius: 4px; margin-bottom: 0.75rem; background-color: var(--surface); display: flex; justify-content: space-between; gap: 1rem; align-items: start;">
+					<div style="display:flex; gap:1rem; align-items:center; flex:1;">
+						<input type="checkbox" class="history-item-checkbox" data-history-id="${item.id}" style="cursor: pointer; width: 16px; height: 16px; flex-shrink: 0;">
+						${item.thumbnail ? `<img src="${item.thumbnail}" alt="thumb" style="width:64px;height:64px;object-fit:cover;border-radius:4px;">` : ''}
+						<div style="flex: 1;">
+							<div style="font-weight: 500; margin-bottom: 0.25rem;">${safeText(item.productName)}</div>
+							<div style="font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem;">ID: ${safeText(item.productId)}</div>
+							<div style="font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem;">Type: ${safeText(item.typename)}</div>
+							<div style="font-size: 0.75rem; color: var(--muted);">Downloaded: ${formatDateDisplay(item.downloadedAt)}</div>
+						</div>
+					</div>
+					<div style="flex-shrink: 0; display:flex; flex-direction: column; gap: .5rem; align-items: flex-end;">
+						<button class="retry-history-btn ghost-button" data-history-id="${item.id}" data-link="${item.link || ''}" type="button" style="font-size: 0.85rem; padding: 0.35rem 0.6rem;">Retry</button>
+					</div>
+				</div>
+			`).join("");
+
+			// Attach checkbox toggle change listeners
+			const checkboxes = elements.historyContent.querySelectorAll(".history-item-checkbox");
+			checkboxes.forEach((cb) => {
+				cb.addEventListener("change", () => {
+					const allChecked = Array.from(checkboxes).every((c) => c.checked);
+					if (elements.historySelectAll) elements.historySelectAll.checked = allChecked;
 				});
+			});
+
+			// attach retry handlers for history items
+			elements.historyContent.querySelectorAll('.retry-history-btn').forEach((btn) => {
+				btn.addEventListener('click', async (event) => {
+					event.preventDefault();
+					const link = btn.dataset.link;
+					if (!link) {
+						showToast({ type: 'error', title: 'No link', message: 'No link available to retry.' });
+						return;
+					}
+					let urlToOpen = link;
+					if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(urlToOpen)) urlToOpen = `https://${urlToOpen}`;
+					try {
+						await window.erodusAPI.openExternalLink(urlToOpen);
+						showToast({ type: 'success', title: 'Opened', message: 'Link opened in your browser.' });
+					} catch (err) {
+						showToast({ type: 'error', title: 'Open failed', message: String(err) });
+					}
+				});
+			});
 		}
+	}
+
+	// Update feed badges in real-time
+	if (state.feedEntries) {
+		renderFeedResults(state.feedEntries);
 	}
 }
 
@@ -1745,9 +2133,59 @@ async function searchProduct() {
 		}
 
 		if (normalized.startsWith("rj") || normalized.startsWith("vj")) {
-			const product = await window.erodusAPI.getDlsiteProductInfo(rawValue);
-			renderProductInSearchResult(product, "DLSite");
-			elements.productStatus.textContent = product?.product_id || rawValue;
+			try {
+				const product = await window.erodusAPI.getDlsiteProductInfo(rawValue);
+				renderProductInSearchResult(product, "DLSite");
+				elements.productStatus.textContent = product?.product_id || rawValue;
+			} catch (error) {
+				console.log("DLSite search failed, trying Erovoice fallback", error);
+				elements.productStatus.textContent = "DLSite failed, searching Erovoice...";
+				try {
+					const response = await window.erodusAPI.searchErovoice({ query: rawValue, maxResults: 1 });
+					const rawEntry = response?.feed?.entry?.[0];
+					if (rawEntry) {
+						const entry = {
+							id: rawEntry.id?.$t || null,
+							published: rawEntry.published?.$t || null,
+							updated: rawEntry.updated?.$t || null,
+							title: rawEntry.title?.$t || null,
+							content: parseFeedContent(rawEntry.content?.$t || null),
+							categories: rawEntry.category?.map((cat) => cat.term) || [],
+							thumbnail: rawEntry.media$thumbnail?.url || null,
+							links: rawEntry.link?.map((link) => ({ rel: link.rel, type: link.type, href: link.href, title: link.title })) || [],
+						};
+						
+						const markup = buildDetailsMarkup(entry);
+						const noticeHtml = `
+							<div class="regional-warning-banner" style="margin-bottom: 1rem;">
+								<strong><i class="fas fa-exclamation-triangle"></i> Notice:</strong> Failed to fetch DLsite details (This item might be restricted by Japan regional block. You may need a VPN connected to Japan to access DLsite info). Falling back to Erovoice API info.
+							</div>
+						`;
+						elements.productResult.innerHTML = noticeHtml + markup;
+						elements.productStatus.textContent = `Erovoice Fallback: ${rawValue}`;
+						
+						// Attach link handlers for the fallback markup
+						elements.productResult.querySelectorAll("[data-open-link]").forEach((link) => {
+							link.addEventListener("click", async (event) => {
+								event.preventDefault();
+								await window.erodusAPI.openExternalLink(link.dataset.openLink);
+							});
+						});
+						bindQueueButtons(elements.productResult);
+					} else {
+						// No erovoice entry found, rethrow original error
+						throw error;
+					}
+				} catch (fallbackError) {
+					elements.productStatus.textContent = "Search failed";
+					elements.productResult.innerHTML = `
+						<div class="regional-warning-banner" style="margin-bottom: 1rem;">
+							<strong><i class="fas fa-exclamation-triangle"></i> Notice:</strong> Failed to fetch DLsite details (This item might be restricted by Japan regional block. You may need a VPN connected to Japan to access DLsite info).
+						</div>
+						<p class="empty-state">${safeText(error.message || error)}</p>
+					`;
+				}
+			}
 			return;
 		}
 
@@ -1832,9 +2270,9 @@ function bindEvents() {
 	elements.themeButtons.forEach((button) => {
 		button.addEventListener("click", () => {
 			const choice = button.dataset.themeChoice;
-			if (choice === "dark" || choice === "light") {
+			if (choice in defaultThemes) {
 				applyTheme(choice);
-			} else {
+			} else if (choice === "custom") {
 				const storedCustom = localStorage.getItem(customThemeStorageKey);
 				if (storedCustom) {
 					try {
@@ -2069,6 +2507,85 @@ function bindEvents() {
 		});
 	});
 
+	// History Filters
+	if (elements.historySearchInput) {
+		elements.historySearchInput.addEventListener("input", () => {
+			renderHistory();
+		});
+	}
+	if (elements.historyDateMin) {
+		elements.historyDateMin.addEventListener("change", () => {
+			renderHistory();
+		});
+	}
+	if (elements.historyDateMax) {
+		elements.historyDateMax.addEventListener("change", () => {
+			renderHistory();
+		});
+	}
+	if (elements.historyFilterClearBtn) {
+		elements.historyFilterClearBtn.addEventListener("click", () => {
+			if (elements.historySearchInput) elements.historySearchInput.value = "";
+			if (elements.historyDateMin) elements.historyDateMin.value = "";
+			if (elements.historyDateMax) elements.historyDateMax.value = "";
+			renderHistory();
+		});
+	}
+
+	// Queue Bulk Operations
+	if (elements.queueSelectAll) {
+		elements.queueSelectAll.addEventListener("change", (e) => {
+			const checked = e.target.checked;
+			if (elements.queueContent) {
+				elements.queueContent.querySelectorAll(".queue-item-checkbox").forEach((cb) => {
+					cb.checked = checked;
+				});
+			}
+		});
+	}
+	if (elements.queueDeleteSelected) {
+		elements.queueDeleteSelected.addEventListener("click", () => {
+			if (!elements.queueContent) return;
+			const checkedCbs = elements.queueContent.querySelectorAll(".queue-item-checkbox:checked");
+			if (checkedCbs.length === 0) {
+				showToast({ type: "warning", title: "No Selection", message: "Please select items to delete." });
+				return;
+			}
+			const checkedIds = Array.from(checkedCbs).map((cb) => Number(cb.dataset.queueId));
+			state.queue = state.queue.filter((item) => !checkedIds.includes(item.id));
+			saveQueue();
+			renderQueue();
+			showToast({ type: "success", title: "Deleted", message: `${checkedIds.length} items removed from queue.` });
+		});
+	}
+
+	// History Bulk Operations
+	if (elements.historySelectAll) {
+		elements.historySelectAll.addEventListener("change", (e) => {
+			const checked = e.target.checked;
+			if (elements.historyContent) {
+				elements.historyContent.querySelectorAll(".history-item-checkbox").forEach((cb) => {
+					cb.checked = checked;
+				});
+			}
+		});
+	}
+	if (elements.historyDeleteSelected) {
+		elements.historyDeleteSelected.addEventListener("click", () => {
+			if (!elements.historyContent) return;
+			const checkedCbs = elements.historyContent.querySelectorAll(".history-item-checkbox:checked");
+			if (checkedCbs.length === 0) {
+				showToast({ type: "warning", title: "No Selection", message: "Please select items to delete." });
+				return;
+			}
+			const checkedIds = Array.from(checkedCbs).map((cb) => Number(cb.dataset.historyId));
+			state.queueHistory = state.queueHistory.filter((item) => !checkedIds.includes(item.id));
+			saveHistory();
+			renderHistory();
+			showToast({ type: "success", title: "Deleted", message: `${checkedIds.length} items removed from history.` });
+		});
+	}
+
 	// Initialize queue display on page load
 	renderQueue();
 	renderHistory();
@@ -2076,6 +2593,54 @@ function bindEvents() {
 
 function initializeThemeEditor() {
 	const { themeName, customTheme } = loadStoredTheme();
+
+	const updateCustomJsonFromPickers = () => {
+		const config = {
+			name: "Custom Theme",
+			colors: {
+				bg: elements.themeColorBg?.value || "#0a0d14",
+				bgAccent: elements.themeColorBgAccent?.value || "#111827",
+				surface: elements.themeColorSurface ? hexToRgba(elements.themeColorSurface.value, 0.92) : "rgba(17, 24, 39, 0.92)",
+				surfaceStrong: elements.themeColorSurfaceStrong?.value || "#182033",
+				text: elements.themeColorText?.value || "#ecf2ff",
+				muted: elements.themeColorMuted?.value || "#9aa8c3",
+				border: elements.themeColorBorder ? hexToRgba(elements.themeColorBorder.value, 0.18) : "rgba(154, 168, 195, 0.18)",
+				accent: elements.themeColorAccent?.value || "#65d6c2",
+				accentStrong: elements.themeColorAccentStrong?.value || "#3bb7a2"
+			}
+		};
+		if (elements.themeJson) {
+			elements.themeJson.value = JSON.stringify(config, null, 2);
+		}
+	};
+
+	[
+		elements.themeColorBg,
+		elements.themeColorBgAccent,
+		elements.themeColorSurface,
+		elements.themeColorSurfaceStrong,
+		elements.themeColorText,
+		elements.themeColorMuted,
+		elements.themeColorBorder,
+		elements.themeColorAccent,
+		elements.themeColorAccentStrong
+	].forEach(picker => {
+		picker?.addEventListener("input", updateCustomJsonFromPickers);
+	});
+
+	if (elements.applyCustomPickerBtn) {
+		elements.applyCustomPickerBtn.addEventListener("click", () => {
+			updateCustomJsonFromPickers();
+			if (elements.themeJson) {
+				try {
+					applyCustomThemeFromJson(elements.themeJson.value);
+				} catch (err) {
+					console.error("Failed to apply custom theme from pickers:", err);
+				}
+			}
+		});
+	}
+
 	if (customTheme) {
 		elements.themeJson.value = JSON.stringify(customTheme, null, 2);
 		applyTheme(themeName === "custom" ? "custom" : themeName, customTheme);
@@ -2085,8 +2650,239 @@ function initializeThemeEditor() {
 	applyTheme(themeName in defaultThemes ? themeName : "dark");
 }
 
+const wallpaperConfigStorageKey = "erodus-wallpaper-config";
+
+const defaultWallpaperConfig = {
+	posX: 50,
+	posY: 50,
+	scale: "cover",
+	blur: 0,
+	darken: 0,
+	sidebarBlur: 18,
+	sidebarDarken: 10,
+	hasWallpaper: false
+};
+
+function loadWallpaperConfig() {
+	try {
+		const stored = localStorage.getItem(wallpaperConfigStorageKey);
+		if (stored) {
+			return { ...defaultWallpaperConfig, ...JSON.parse(stored) };
+		}
+	} catch (e) {
+		console.error("Failed to load wallpaper config:", e);
+	}
+	return { ...defaultWallpaperConfig };
+}
+
+function saveWallpaperConfig(config) {
+	try {
+		localStorage.setItem(wallpaperConfigStorageKey, JSON.stringify(config));
+	} catch (e) {
+		console.error("Failed to save wallpaper config:", e);
+	}
+}
+
+function applySidebarConfig(config) {
+	const sidebar = document.querySelector(".sidebar");
+	if (!sidebar) return;
+	sidebar.style.backdropFilter = `blur(${config.sidebarBlur}px)`;
+	sidebar.style.webkitBackdropFilter = `blur(${config.sidebarBlur}px)`;
+	sidebar.style.background = `rgba(0, 0, 0, ${config.sidebarDarken / 100})`;
+}
+
+async function applyWallpaperBackground(config) {
+	const bg = document.getElementById("app-background");
+	const overlay = document.getElementById("app-background-overlay");
+	if (!bg || !overlay) return;
+
+	applySidebarConfig(config);
+
+	if (config.hasWallpaper) {
+		try {
+			const dataUrl = await window.erodusAPI.loadWallpaper();
+			if (dataUrl) {
+				bg.style.backgroundImage = `url(${dataUrl})`;
+				bg.style.backgroundPosition = `${config.posX}% ${config.posY}%`;
+				bg.style.backgroundSize = config.scale;
+				bg.style.filter = `blur(${config.blur}px)`;
+				overlay.style.opacity = config.darken / 100;
+			} else {
+				config.hasWallpaper = false;
+				saveWallpaperConfig(config);
+				bg.style.backgroundImage = "none";
+				bg.style.filter = "none";
+				overlay.style.opacity = 0;
+			}
+		} catch (err) {
+			console.error("Failed to load background wallpaper:", err);
+		}
+	} else {
+		bg.style.backgroundImage = "none";
+		bg.style.filter = "none";
+		overlay.style.opacity = 0;
+	}
+}
+
+async function initializeWallpaper() {
+	const config = loadWallpaperConfig();
+	await applyWallpaperBackground(config);
+
+	if (elements.wallpaperPosX) elements.wallpaperPosX.value = config.posX;
+	if (elements.wallpaperPosY) elements.wallpaperPosY.value = config.posY;
+	if (elements.wallpaperScale) elements.wallpaperScale.value = config.scale;
+	if (elements.wallpaperBlur) elements.wallpaperBlur.value = config.blur;
+	if (elements.wallpaperDark) elements.wallpaperDark.value = config.darken;
+	if (elements.wallpaperSbBlur) elements.wallpaperSbBlur.value = config.sidebarBlur;
+	if (elements.wallpaperSbDark) elements.wallpaperSbDark.value = config.sidebarDarken;
+
+	if (elements.wallpaperValX) elements.wallpaperValX.textContent = config.posX;
+	if (elements.wallpaperValY) elements.wallpaperValY.textContent = config.posY;
+	if (elements.wallpaperValBlur) elements.wallpaperValBlur.textContent = config.blur;
+	if (elements.wallpaperValDark) elements.wallpaperValDark.textContent = config.darken;
+	if (elements.wallpaperValSbBlur) elements.wallpaperValSbBlur.textContent = config.sidebarBlur;
+	if (elements.wallpaperValSbDark) elements.wallpaperValSbDark.textContent = config.sidebarDarken;
+
+	if (config.hasWallpaper) {
+		if (elements.wallpaperClearBtn) elements.wallpaperClearBtn.style.display = "inline-block";
+		if (elements.wallpaperControlsPanel) elements.wallpaperControlsPanel.style.display = "flex";
+		if (elements.wallpaperStatus) elements.wallpaperStatus.textContent = "Custom wallpaper active";
+	} else {
+		if (elements.wallpaperClearBtn) elements.wallpaperClearBtn.style.display = "none";
+		if (elements.wallpaperControlsPanel) elements.wallpaperControlsPanel.style.display = "none";
+		if (elements.wallpaperStatus) elements.wallpaperStatus.textContent = "No wallpaper imported";
+	}
+
+	const updateLiveStyles = () => {
+		const bg = document.getElementById("app-background");
+		const overlay = document.getElementById("app-background-overlay");
+		if (!bg || !overlay) return;
+
+		const current = {
+			posX: elements.wallpaperPosX ? Number(elements.wallpaperPosX.value) : 50,
+			posY: elements.wallpaperPosY ? Number(elements.wallpaperPosY.value) : 50,
+			scale: elements.wallpaperScale ? elements.wallpaperScale.value : "cover",
+			blur: elements.wallpaperBlur ? Number(elements.wallpaperBlur.value) : 0,
+			darken: elements.wallpaperDark ? Number(elements.wallpaperDark.value) : 0,
+			sidebarBlur: elements.wallpaperSbBlur ? Number(elements.wallpaperSbBlur.value) : 18,
+			sidebarDarken: elements.wallpaperSbDark ? Number(elements.wallpaperSbDark.value) : 10,
+			hasWallpaper: config.hasWallpaper
+		};
+
+		bg.style.backgroundPosition = `${current.posX}% ${current.posY}%`;
+		bg.style.backgroundSize = current.scale;
+		bg.style.filter = `blur(${current.blur}px)`;
+		overlay.style.opacity = current.darken / 100;
+		applySidebarConfig(current);
+
+		if (elements.wallpaperValX) elements.wallpaperValX.textContent = current.posX;
+		if (elements.wallpaperValY) elements.wallpaperValY.textContent = current.posY;
+		if (elements.wallpaperValBlur) elements.wallpaperValBlur.textContent = current.blur;
+		if (elements.wallpaperValDark) elements.wallpaperValDark.textContent = current.darken;
+		if (elements.wallpaperValSbBlur) elements.wallpaperValSbBlur.textContent = current.sidebarBlur;
+		if (elements.wallpaperValSbDark) elements.wallpaperValSbDark.textContent = current.sidebarDarken;
+
+		saveWallpaperConfig(current);
+	};
+
+	[
+		elements.wallpaperPosX,
+		elements.wallpaperPosY,
+		elements.wallpaperBlur,
+		elements.wallpaperDark,
+		elements.wallpaperSbBlur,
+		elements.wallpaperSbDark
+	].forEach(el => {
+		el?.addEventListener("input", updateLiveStyles);
+	});
+
+	elements.wallpaperScale?.addEventListener("change", updateLiveStyles);
+
+	elements.wallpaperImportBtn?.addEventListener("click", () => {
+		elements.wallpaperFileInput?.click();
+	});
+
+	elements.wallpaperFileInput?.addEventListener("change", (e) => {
+		const file = e.target.files?.[0];
+		if (!file) return;
+
+		const reader = new FileReader();
+		reader.onload = async (event) => {
+			const dataUrl = event.target?.result;
+			if (!dataUrl) return;
+
+			const extension = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
+			const base64Data = dataUrl.split(",")[1];
+
+			try {
+				if (elements.wallpaperStatus) elements.wallpaperStatus.textContent = "Saving wallpaper...";
+				const result = await window.erodusAPI.saveWallpaper({ base64Data, extension });
+				if (result?.success) {
+					config.hasWallpaper = true;
+					saveWallpaperConfig(config);
+					await applyWallpaperBackground(config);
+
+					if (elements.wallpaperClearBtn) elements.wallpaperClearBtn.style.display = "inline-block";
+					if (elements.wallpaperControlsPanel) elements.wallpaperControlsPanel.style.display = "flex";
+					if (elements.wallpaperStatus) elements.wallpaperStatus.textContent = "Custom wallpaper active";
+					showToast({ type: "success", title: "Wallpaper Imported", message: "Wallpaper successfully updated." });
+				}
+			} catch (err) {
+				console.error("Failed to save wallpaper:", err);
+				if (elements.wallpaperStatus) elements.wallpaperStatus.textContent = "Import failed";
+				showToast({ type: "error", title: "Import Failed", message: err?.message || String(err) });
+			}
+		};
+		reader.readAsDataURL(file);
+	});
+
+	elements.wallpaperClearBtn?.addEventListener("click", async () => {
+		try {
+			if (elements.wallpaperStatus) elements.wallpaperStatus.textContent = "Removing wallpaper...";
+			const result = await window.erodusAPI.clearWallpaper();
+			if (result?.success) {
+				config.hasWallpaper = false;
+				config.posX = 50;
+				config.posY = 50;
+				config.scale = "cover";
+				config.blur = 0;
+				config.darken = 0;
+				config.sidebarBlur = 18;
+				config.sidebarDarken = 10;
+				saveWallpaperConfig(config);
+				await applyWallpaperBackground(config);
+
+				if (elements.wallpaperPosX) elements.wallpaperPosX.value = 50;
+				if (elements.wallpaperPosY) elements.wallpaperPosY.value = 50;
+				if (elements.wallpaperScale) elements.wallpaperScale.value = "cover";
+				if (elements.wallpaperBlur) elements.wallpaperBlur.value = 0;
+				if (elements.wallpaperDark) elements.wallpaperDark.value = 0;
+				if (elements.wallpaperSbBlur) elements.wallpaperSbBlur.value = 18;
+				if (elements.wallpaperSbDark) elements.wallpaperSbDark.value = 10;
+
+				if (elements.wallpaperValX) elements.wallpaperValX.textContent = 50;
+				if (elements.wallpaperValY) elements.wallpaperValY.textContent = 50;
+				if (elements.wallpaperValBlur) elements.wallpaperValBlur.textContent = 0;
+				if (elements.wallpaperValDark) elements.wallpaperValDark.textContent = 0;
+				if (elements.wallpaperValSbBlur) elements.wallpaperValSbBlur.textContent = 18;
+				if (elements.wallpaperValSbDark) elements.wallpaperValSbDark.textContent = 10;
+
+				if (elements.wallpaperClearBtn) elements.wallpaperClearBtn.style.display = "none";
+				if (elements.wallpaperControlsPanel) elements.wallpaperControlsPanel.style.display = "none";
+				if (elements.wallpaperStatus) elements.wallpaperStatus.textContent = "No wallpaper imported";
+				if (elements.wallpaperFileInput) elements.wallpaperFileInput.value = "";
+				showToast({ type: "success", title: "Wallpaper Removed", message: "App background reset." });
+			}
+		} catch (err) {
+			console.error("Failed to clear wallpaper:", err);
+			showToast({ type: "error", title: "Action Failed", message: err?.message || String(err) });
+		}
+	});
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
 	initializeThemeEditor();
+	initializeWallpaper();
 	applyUpdateState();
 	await loadAppInfo();
 	loadQueue();
