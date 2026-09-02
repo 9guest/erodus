@@ -1,7 +1,6 @@
 import axios from "axios";
 
-const baseURL = "https://dls-worker.ycstation.workers.dev/";
-const prettyEndpoint = "pretty";
+const DL_SITE_API_BASE = "https://www.dlsite.com/maniax/api/=/product.json";
 
 function normalizeProductId(productId) {
   const value = String(productId || "").trim();
@@ -10,7 +9,7 @@ function normalizeProductId(productId) {
     return "";
   }
 
-  const match = value.match(/^([rv]j\d{8})$/i);
+  const match = value.match(/^([rv]j\d{6,8})$/i);
   if (match) {
     return match[1].toUpperCase();
   }
@@ -19,7 +18,35 @@ function normalizeProductId(productId) {
 }
 
 /**
- * Fetch product information by DLSite product ID
+ * Fetch raw product information directly from DLsite API
+ * @param {string} productId - DLsite product ID (e.g., RJ01546453)
+ * @returns {Promise<Array<Object>>} Raw DLsite API data array
+ */
+export async function getFullProductInfo(productId) {
+  const normalizedProductId = normalizeProductId(productId);
+
+  if (!normalizedProductId) {
+    throw new Error("productId is required");
+  }
+
+  try {
+    const url = `${DL_SITE_API_BASE}?workno=${encodeURIComponent(normalizedProductId)}`;
+    const response = await axios.get(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept-Language": "ja-JP,ja;q=0.9,en-US;q=0.8,en;q=0.7"
+      },
+      timeout: 10000
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching raw product info for ${normalizedProductId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Fetch and prettify product information by DLSite product ID locally
  * @param {string} productId - DLSite product ID (e.g., RJ01546453)
  * @returns {Promise<Object>} Prettified product data
  * 
@@ -35,9 +62,57 @@ export async function getProductInfo(productId) {
   }
 
   try {
-    const url = `${baseURL}${prettyEndpoint}/${encodeURIComponent(normalizedProductId)}`;
-    const response = await axios.get(url);
-    return response.data;
+    const data = await getFullProductInfo(normalizedProductId);
+
+    if (Array.isArray(data) && data.length > 0) {
+      const thisData = data[0];
+      const createdBy = thisData.creaters?.created_by?.map((c) => c.name) || [];
+      const scenarioBy = thisData.creaters?.scenario_by?.map((c) => c.name) || [];
+      const illustBy = thisData.creaters?.illust_by?.map((c) => c.name) || [];
+      const voiceBy = thisData.creaters?.voice_by?.map((c) => c.name) || [];
+      const genres = thisData.genres?.map((g) => g.name) || [];
+
+      const mainImageUrl = thisData.image_main?.url || "";
+      const productImage = {
+        file_name: thisData.image_main?.file_name || null,
+        url: mainImageUrl ? (mainImageUrl.startsWith("//") ? `https:${mainImageUrl}` : mainImageUrl) : null
+      };
+
+      const imageSamples = (thisData.image_samples || []).map(({ file_name, url }) => ({
+        file_name: file_name || null,
+        url: url ? (url.startsWith("//") ? `https:${url}` : url) : ""
+      }));
+
+      const fileSize = thisData.contents && thisData.contents[0]
+        ? thisData.contents[0].file_size_unit
+        : (thisData.file_size || null);
+
+      return {
+        age_category: thisData.age_category_string || null,
+        product_id: thisData.workno || normalizedProductId,
+        product_name: thisData.product_name || null,
+        product_alt_name: thisData.alt_name || null,
+        product_intro: thisData.intro_s || null,
+        product_image: productImage,
+        product_image_samples: imageSamples,
+        product_price: thisData.price ?? null,
+        product_official_price: thisData.official_price ?? null,
+        circle_id: thisData.circle_id || null,
+        maker_id: thisData.maker_id || null,
+        maker_name: thisData.maker_name || null,
+        created_by: createdBy,
+        scenario_by: scenarioBy,
+        illust_by: illustBy,
+        voice_by: voiceBy,
+        genres,
+        update_date: thisData.update_date || null,
+        regist_date: thisData.regist_date || null,
+        file_size: fileSize,
+        url: `https://www.dlsite.com/maniax/work/=/product_id/${thisData.workno || normalizedProductId}.html`
+      };
+    } else {
+      throw new Error(`Product not found for ${normalizedProductId}`);
+    }
   } catch (error) {
     console.error(`Error fetching product info for ${normalizedProductId}:`, error);
     throw error;

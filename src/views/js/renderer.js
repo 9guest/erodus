@@ -193,6 +193,8 @@ const state = {
 	feedEntries: [],
 	selectedFeedEntry: null,
 	selectedProduct: null,
+	isLoadingMore: false,
+	hasMoreFeed: true,
 	categories: [],
 	themeName: "dark",
 	appInfo: {
@@ -1136,13 +1138,13 @@ async function loadDetailsFromFeedEntry(entry) {
 			openDetailsModal();
 		}
 	} catch (error) {
-		if (lookupInfo.sourceLabel === "DLSite") {
+		if (lookupInfo.sourceLabel === "DLSite" || lookupInfo.sourceLabel === "FANZA / DMM") {
 			// Fallback to Erovoice feed info
-			syncDetailsMarkup(entry, "Erovoice feed (DLSite fallback)");
+			syncDetailsMarkup(entry, `Erovoice feed (${lookupInfo.sourceLabel} fallback)`);
 
 			const noticeHtml = `
 				<div class="regional-warning-banner">
-					<strong><i class="fas fa-exclamation-triangle"></i> Notice:</strong> Failed to fetch DLsite details (This item might be restricted by Japan regional block. You may need a VPN connected to Japan to access DLsite info). Falling back to Erovoice API info.
+					<strong><i class="fas fa-exclamation-triangle"></i> Notice:</strong> Failed to fetch ${lookupInfo.sourceLabel} details (This item might be restricted by Japan regional block. You may need a VPN connected to Japan to access ${lookupInfo.sourceLabel} info). Falling back to Erovoice API info.
 				</div>
 			`;
 
@@ -1907,6 +1909,8 @@ async function loadCategories() {
 }
 
 async function loadFeed() {
+	state.isLoadingMore = false;
+	state.hasMoreFeed = true;
 	elements.feedStatus.textContent = "Loading...";
 
 	// Support appending results for "Load more" behavior
@@ -1929,26 +1933,27 @@ async function loadFeed() {
 
 	try {
 		const filters = getFeedFiltersFromForm();
-		// if state.currentStartIndex is set, use it; otherwise initialize
-		if (!state.currentStartIndex || state.currentStartIndex < 1) state.currentStartIndex = Number(filters.startIndex) || 1;
+		// reset start index for initial fresh feed load
+		state.currentStartIndex = Number(filters.startIndex) || 1;
 
-		// always fetch starting at state.currentStartIndex
 		const fetchFilters = { ...filters, startIndex: state.currentStartIndex };
 		const parsedEntries = await doFetch(fetchFilters);
 
-		// Replace entries when loading fresh (startIndex equals original requested startIndex), otherwise append
-		if (Number(filters.startIndex) <= state.currentStartIndex) {
-			state.feedEntries = parsedEntries;
-		} else {
-			state.feedEntries = (state.feedEntries || []).concat(parsedEntries);
-		}
-
+		state.feedEntries = parsedEntries;
 		renderFeedResults(state.feedEntries || []);
 		elements.feedStatus.textContent = `${state.feedEntries.length} items`;
 
-		// show or hide load-more button
-		const moreAvailable = parsedEntries.length >= (filters.maxResults || 20);
-		if (elements.feedLoadMoreContainer) elements.feedLoadMoreContainer.style.display = moreAvailable ? "block" : "none";
+		// show or hide load-more button / sentinel
+		const step = Number(filters.maxResults) || 20;
+		const moreAvailable = parsedEntries.length >= step;
+		state.hasMoreFeed = moreAvailable;
+		if (elements.feedLoadMoreContainer) {
+			elements.feedLoadMoreContainer.style.display = moreAvailable ? "block" : "none";
+			if (elements.feedLoadMoreBtn) {
+				elements.feedLoadMoreBtn.textContent = "Load more";
+				elements.feedLoadMoreBtn.disabled = false;
+			}
+		}
 
 		if (state.feedEntries[0]) {
 			state.selectedFeedEntry = state.feedEntries[0];
@@ -1961,36 +1966,56 @@ async function loadFeed() {
 }
 
 async function loadMore() {
-    const filters = getFeedFiltersFromForm();
-    const step = Number(filters.maxResults) || 20;
-    state.currentStartIndex = (state.currentStartIndex || Number(filters.startIndex) || 1) + step;
-    // fetch next page and append
-    try {
-        const responseFilters = { ...filters, startIndex: state.currentStartIndex };
-        const newEntries = await (async (f) => {
-            const r = await window.erodusAPI.searchErovoice(f);
-            const e = (r?.feed?.entry || []).map((entry) => ({
-                id: entry.id?.$t || null,
-                published: entry.published?.$t || null,
-                updated: entry.updated?.$t || null,
-                title: entry.title?.$t || null,
-                content: null,
-                rawContent: entry.content?.$t || null,
-                categories: entry.category?.map((cat) => cat.term) || [],
-                thumbnail: entry.media$thumbnail?.url || null,
-                links: entry.link?.map((link) => ({ rel: link.rel, type: link.type, href: link.href, title: link.title })) || [],
-            }));
-            return e.map((en) => ({ ...en, content: parseFeedContent(en.rawContent) }));
-        })(responseFilters);
+	if (state.isLoadingMore || !state.hasMoreFeed) return;
+	state.isLoadingMore = true;
 
-        state.feedEntries = (state.feedEntries || []).concat(newEntries);
-        renderFeedResults(state.feedEntries || []);
-        elements.feedStatus.textContent = `${state.feedEntries.length} items`;
-        const moreAvailable = newEntries.length >= (filters.maxResults || 20);
-        if (elements.feedLoadMoreContainer) elements.feedLoadMoreContainer.style.display = moreAvailable ? "block" : "none";
-    } catch (error) {
-        window.erodusAPI.showMessageBox?.({ type: 'error', title: 'Load more failed', message: String(error) });
-    }
+	const filters = getFeedFiltersFromForm();
+	const step = Number(filters.maxResults) || 20;
+	state.currentStartIndex = (state.currentStartIndex || Number(filters.startIndex) || 1) + step;
+
+	if (elements.feedLoadMoreBtn) {
+		elements.feedLoadMoreBtn.textContent = "Loading more...";
+		elements.feedLoadMoreBtn.disabled = true;
+	}
+
+	try {
+		const responseFilters = { ...filters, startIndex: state.currentStartIndex };
+		const newEntries = await (async (f) => {
+			const r = await window.erodusAPI.searchErovoice(f);
+			const e = (r?.feed?.entry || []).map((entry) => ({
+				id: entry.id?.$t || null,
+				published: entry.published?.$t || null,
+				updated: entry.updated?.$t || null,
+				title: entry.title?.$t || null,
+				content: null,
+				rawContent: entry.content?.$t || null,
+				categories: entry.category?.map((cat) => cat.term) || [],
+				thumbnail: entry.media$thumbnail?.url || null,
+				links: entry.link?.map((link) => ({ rel: link.rel, type: link.type, href: link.href, title: link.title })) || [],
+			}));
+			return e.map((en) => ({ ...en, content: parseFeedContent(en.rawContent) }));
+		})(responseFilters);
+
+		if (newEntries.length > 0) {
+			state.feedEntries = (state.feedEntries || []).concat(newEntries);
+			renderFeedResults(state.feedEntries || []);
+			elements.feedStatus.textContent = `${state.feedEntries.length} items`;
+		}
+
+		const moreAvailable = newEntries.length >= step;
+		state.hasMoreFeed = moreAvailable;
+		if (elements.feedLoadMoreContainer) {
+			elements.feedLoadMoreContainer.style.display = moreAvailable ? "block" : "none";
+		}
+	} catch (error) {
+		console.error("Auto load more error:", error);
+	} finally {
+		state.isLoadingMore = false;
+		if (elements.feedLoadMoreBtn) {
+			elements.feedLoadMoreBtn.textContent = "Load more";
+			elements.feedLoadMoreBtn.disabled = false;
+		}
+	}
 }
 
 // This function parses the raw HTML content from the feed entry 
@@ -2126,9 +2151,59 @@ async function searchProduct() {
 
 	try {
 		if (normalized.startsWith("d_")) {
-			const product = await window.erodusAPI.getFanzaProductInfo(rawValue);
-			renderProductInSearchResult(product, "FANZA / DMM");
-			elements.productStatus.textContent = product?.cid || rawValue;
+			try {
+				const product = await window.erodusAPI.getFanzaProductInfo(rawValue);
+				renderProductInSearchResult(product, "FANZA / DMM");
+				elements.productStatus.textContent = product?.cid || rawValue;
+			} catch (error) {
+				console.log("FANZA search failed, trying Erovoice fallback", error);
+				elements.productStatus.textContent = "FANZA failed, searching Erovoice...";
+				try {
+					const response = await window.erodusAPI.searchErovoice({ query: rawValue, maxResults: 1 });
+					const rawEntry = response?.feed?.entry?.[0];
+					if (rawEntry) {
+						const entry = {
+							id: rawEntry.id?.$t || null,
+							published: rawEntry.published?.$t || null,
+							updated: rawEntry.updated?.$t || null,
+							title: rawEntry.title?.$t || null,
+							content: parseFeedContent(rawEntry.content?.$t || null),
+							categories: rawEntry.category?.map((cat) => cat.term) || [],
+							thumbnail: rawEntry.media$thumbnail?.url || null,
+							links: rawEntry.link?.map((link) => ({ rel: link.rel, type: link.type, href: link.href, title: link.title })) || [],
+						};
+						
+						const markup = buildDetailsMarkup(entry);
+						const noticeHtml = `
+							<div class="regional-warning-banner" style="margin-bottom: 1rem;">
+								<strong><i class="fas fa-exclamation-triangle"></i> Notice:</strong> Failed to fetch FANZA / DMM details (This item might be restricted by Japan regional block. You may need a VPN connected to Japan to access FANZA info). Falling back to Erovoice API info.
+							</div>
+						`;
+						elements.productResult.innerHTML = noticeHtml + markup;
+						elements.productStatus.textContent = `Erovoice Fallback: ${rawValue}`;
+						
+						// Attach link handlers for the fallback markup
+						elements.productResult.querySelectorAll("[data-open-link]").forEach((link) => {
+							link.addEventListener("click", async (event) => {
+								event.preventDefault();
+								await window.erodusAPI.openExternalLink(link.dataset.openLink);
+							});
+						});
+						bindQueueButtons(elements.productResult);
+					} else {
+						// No erovoice entry found, rethrow original error
+						throw error;
+					}
+				} catch (fallbackError) {
+					elements.productStatus.textContent = "Search failed";
+					elements.productResult.innerHTML = `
+						<div class="regional-warning-banner" style="margin-bottom: 1rem;">
+							<strong><i class="fas fa-exclamation-triangle"></i> Notice:</strong> Failed to fetch FANZA / DMM details (This item might be restricted by Japan regional block. You may need a VPN connected to Japan to access FANZA info).
+						</div>
+						<p class="empty-state">${safeText(error.message || error)}</p>
+					`;
+				}
+			}
 			return;
 		}
 
