@@ -933,7 +933,14 @@ async function installUpdate() {
 	}
 }
 
+const pageScrollPositions = {};
+
 function setPage(page) {
+	const mainContent = document.querySelector(".main-content");
+	if (mainContent && state.page) {
+		pageScrollPositions[state.page] = mainContent.scrollTop;
+	}
+
 	state.page = page;
 	elements.navItems.forEach((item) => item.classList.toggle("is-active", item.dataset.page === page));
 	elements.pageViews.forEach((view) => view.classList.toggle("is-active", view.dataset.pageView === page));
@@ -953,6 +960,14 @@ function setPage(page) {
 	if (page === "queue") {
 		renderQueue();
 		renderHistory();
+	}
+
+	// Restore scroll position for the activated page view
+	if (mainContent) {
+		requestAnimationFrame(() => {
+			mainContent.scrollTop = pageScrollPositions[page] || 0;
+			updateScrollToTopBtn();
+		});
 	}
 
 	const config = {
@@ -1059,7 +1074,7 @@ function renderFeedResults(entries) {
 					<span>${entry.content?.fileSize ? `File Size: ${safeText(entry.content.fileSize)}` : "No file size"}</span>
 					${badgeHtml}
 				</div>
-				${image ? `<img class="details-image" src="${image}" alt="${safeText(entry.title)}">` : ""}
+				${image ? `<img class="details-image" loading="lazy" decoding="async" src="${image}" alt="${safeText(entry.title)}" onload="this.classList.add('is-loaded')" onerror="this.onerror=null; this.classList.add('is-loaded'); this.style.opacity='0.4';">` : `<div class="details-image-placeholder"><i class="fas fa-image"></i></div>`}
 				<div class="chip-row">
 					${categories.slice(0, 5).map((category) => `<span class="chip">${category}</span>`).join("")}
 				</div>
@@ -2302,10 +2317,85 @@ function syncFilterValuesFromModal() {
 	if (elements.feedStartIndex) elements.feedStartIndex.value = elements.feedStartIndexModal.value;
 }
 
+function updateScrollToTopBtn() {
+	const scrollToTopBtn = document.getElementById("scroll-to-top-btn");
+	const mainContent = document.querySelector(".main-content");
+	if (!scrollToTopBtn) return;
+
+	scrollToTopBtn.classList.toggle("is-feed-page", state.page === "feed");
+	
+	const currentScrollTop = (mainContent ? mainContent.scrollTop : 0) || window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+	if (currentScrollTop > 150) {
+		scrollToTopBtn.classList.add("is-visible");
+	} else {
+		scrollToTopBtn.classList.remove("is-visible");
+	}
+}
+
+let feedObserver = null;
+function setupInfiniteScroll() {
+	if (feedObserver) {
+		feedObserver.disconnect();
+		feedObserver = null;
+	}
+
+	const scrollRoot = document.querySelector(".main-content");
+
+	if ("IntersectionObserver" in window && elements.feedLoadMoreContainer) {
+		feedObserver = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					if (entry.isIntersecting && state.hasMoreFeed && !state.isLoadingMore) {
+						loadMore();
+					}
+				}
+			},
+			{
+				root: scrollRoot || null,
+				rootMargin: "350px",
+				threshold: 0.05,
+			}
+		);
+		feedObserver.observe(elements.feedLoadMoreContainer);
+	}
+
+	const onScrollHandler = () => {
+		updateScrollToTopBtn();
+		if (state.isLoadingMore || !state.hasMoreFeed) return;
+		const container = scrollRoot || document.documentElement;
+		const threshold = 350;
+		if (container.scrollHeight - container.scrollTop - container.clientHeight < threshold) {
+			loadMore();
+		}
+	};
+
+	// Listen on both main-content and window to catch all scrolling contexts
+	if (scrollRoot) {
+		scrollRoot.removeEventListener("scroll", onScrollHandler);
+		scrollRoot.addEventListener("scroll", onScrollHandler, { passive: true });
+	}
+	window.removeEventListener("scroll", onScrollHandler);
+	window.addEventListener("scroll", onScrollHandler, { passive: true });
+}
+
 function bindEvents() {
 	elements.navItems.forEach((item) => {
 		item.addEventListener("click", () => setPage(item.dataset.page));
 	});
+
+	// Scroll-to-top floating button
+	const scrollToTopBtn = document.getElementById("scroll-to-top-btn");
+	if (scrollToTopBtn) {
+		scrollToTopBtn.addEventListener("click", () => {
+			const mainContent = document.querySelector(".main-content");
+			if (mainContent && mainContent.scrollTop > 0) {
+				mainContent.scrollTo({ top: 0, behavior: "smooth" });
+			}
+			window.scrollTo({ top: 0, behavior: "smooth" });
+			document.documentElement.scrollTo({ top: 0, behavior: "smooth" });
+			document.body.scrollTo({ top: 0, behavior: "smooth" });
+		});
+	}
 
 	// If the top filter form exists (older layout), attach; otherwise rely on modal form
 	if (elements.feedFilterForm) {
@@ -2332,10 +2422,11 @@ function bindEvents() {
 		});
 	}
 
-	// Load-more button
+	// Load-more button & Auto-loading infinite scroll
 	if (elements.feedLoadMoreBtn) {
 		elements.feedLoadMoreBtn.addEventListener('click', loadMore);
 	}
+	setupInfiniteScroll();
 
 	elements.productSearchForm.addEventListener("submit", async (event) => {
 		event.preventDefault();
